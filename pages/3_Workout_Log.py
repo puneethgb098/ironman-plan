@@ -4,7 +4,9 @@ from pathlib import Path
 from datetime import date, timedelta
 from data.store import load_workouts, update_workout, save_daily_log
 from data.models import DailyLog
-from config import SPORT_ICONS, INTENSITY_COLORS, STATUS_COLORS
+from config import SPORT_ICONS, INTENSITY_COLORS, STATUS_COLORS, STATUS_ICONS
+from components.cards import render_workout_card
+from components.workout_detail import render_workout_detail
 
 st.set_page_config(page_title="Workout Log | IronPlan", page_icon="✏️", layout="wide")
 css_path = Path(__file__).parent.parent / "assets" / "style.css"
@@ -25,38 +27,18 @@ with tab1:
 
     if not day_workouts:
         st.info(f"No workouts scheduled for {log_date.strftime('%A, %B %d')}.")
-        st.markdown("---")
-        st.markdown("#### Log a Custom Workout")
-        with st.form("custom_workout"):
-            c1, c2 = st.columns(2)
-            with c1:
-                custom_sport = st.selectbox("Sport", ["swim", "bike", "run", "strength", "mobility"])
-                custom_dur = st.number_input("Duration (min)", min_value=0, max_value=600, value=60)
-            with c2:
-                custom_rpe = st.slider("RPE", 1, 10, 5)
-                custom_notes = st.text_area("Notes", height=80)
-            if st.form_submit_button("Log Custom Workout"):
-                st.success("Custom workout logged!")
+        st.markdown("Use the **Upload** page to add workouts, or check the **Calendar** for scheduled sessions.")
     else:
         st.markdown(f"### {log_date.strftime('%A, %B %d')} — {len(day_workouts)} session(s)")
 
         for w in day_workouts:
-            icon = SPORT_ICONS.get(w.sport, "❓")
-            int_color = INTENSITY_COLORS.get(w.intensity, "#636E72")
+            render_workout_card(w, clickable=False)
 
-            st.markdown(f"""
-            <div class="workout-card {w.sport}">
-                <span style="font-size:1.2rem;">{icon}</span>
-                <strong>{w.description}</strong>
-                <span style="background:{int_color}22; color:{int_color}; padding:2px 8px; border-radius:12px; font-size:0.75rem; margin-left:8px;">{w.intensity}</span>
-            </div>
-            """, unsafe_allow_html=True)
-
-            with st.expander(f"Details & Log — {w.description}", expanded=w.date == str(today)):
-                st.markdown(f"**Warm-up:** {w.warmup}")
-                st.markdown(f"**Main Set:** {w.main_set}")
-                st.markdown(f"**Cool-down:** {w.cooldown}")
-                st.markdown(f"**Purpose:** *{w.purpose}*")
+            with st.expander(f"📝 Log — {w.description}", expanded=w.date == str(today)):
+                st.markdown(f"**🔥 Warm-up:** {w.warmup}")
+                st.markdown(f"**💪 Main Set:** {w.main_set}")
+                st.markdown(f"**❄️ Cool-down:** {w.cooldown}")
+                st.markdown(f"**🎯 Purpose:** *{w.purpose}*")
                 st.markdown(f"**Planned:** {w.planned_duration_min} min | TSS: {w.tss_planned}")
 
                 st.markdown("---")
@@ -76,11 +58,22 @@ with tab1:
                             value=w.actual_duration_min or w.planned_duration_min,
                             key=f"dur_{w.id}"
                         )
+                        actual_dist = st.number_input(
+                            "Distance (km)",
+                            min_value=0.0, max_value=300.0,
+                            value=float(w.actual_distance_km or w.planned_distance_km or 0),
+                            step=0.1,
+                            key=f"dist_{w.id}"
+                        )
                     with lc2:
                         rpe = st.slider("RPE (1-10)", 1, 10, w.rpe or 5, key=f"rpe_{w.id}")
                         actual_hr = st.number_input(
                             "Avg HR (optional)", min_value=0, max_value=220,
                             value=w.actual_hr_avg or 0, key=f"hr_{w.id}"
+                        )
+                        avg_power = st.number_input(
+                            "Avg Power (W, optional)", min_value=0, max_value=500,
+                            value=w.avg_power_watts or 0, key=f"power_{w.id}"
                         )
                     notes = st.text_area("Notes", value=w.notes, key=f"notes_{w.id}", height=60)
 
@@ -88,17 +81,21 @@ with tab1:
                         rpe_factor = {3: 0.6, 4: 0.7, 5: 0.85, 6: 1.0, 7: 1.15, 8: 1.35, 9: 1.5, 10: 1.7}
                         actual_tss = int(actual_dur * rpe_factor.get(rpe, 1.0))
 
-                        update_workout(w.id, {
+                        updates = {
                             "status": new_status,
                             "actual_duration_min": actual_dur,
                             "rpe": rpe,
                             "actual_hr_avg": actual_hr if actual_hr > 0 else None,
+                            "avg_power_watts": avg_power if avg_power > 0 else None,
+                            "actual_distance_km": actual_dist if actual_dist > 0 else None,
                             "notes": notes,
                             "tss_actual": actual_tss,
-                        })
+                        }
+                        update_workout(w.id, updates)
                         st.success(f"✅ {w.description} logged as {new_status.upper()}!")
                         st.rerun()
 
+    # Recent Activity
     st.markdown("---")
     st.markdown("### 📋 Recent Activity")
     recent_start = today - timedelta(days=7)
@@ -107,17 +104,7 @@ with tab1:
 
     if recent:
         for w in recent[:10]:
-            icon = SPORT_ICONS.get(w.sport, "❓")
-            stat_color = STATUS_COLORS.get(w.status, "#636E72")
-            dur_text = f"{w.actual_duration_min or w.planned_duration_min}min"
-            rpe_text = f"RPE {w.rpe}" if w.rpe else ""
-            st.markdown(f"""
-            <div style="padding:8px 16px; border-left:3px solid {stat_color}; margin-bottom:4px; background:var(--bg-card); border-radius:0 8px 8px 0;">
-                <span>{icon} <strong>{w.description}</strong></span>
-                <span style="float:right; color:{stat_color}; font-size:0.85rem;">{w.status.upper()} · {dur_text} {rpe_text}</span>
-                <div style="font-size:0.75rem; color:var(--text-muted);">{w.date}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            render_workout_card(w, clickable=False, compact=True)
     else:
         st.caption("No completed workouts in the last 7 days.")
 

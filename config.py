@@ -13,13 +13,16 @@ PHASES = [
     {"name": "Taper", "weeks": 2, "color": "#FDCB6E"},
 ]
 
-SPORTS = ["swim", "bike", "run", "strength", "mobility"]
+SPORTS = ["swim", "bike", "run", "strength", "mobility", "recovery", "race", "rest"]
 SPORT_COLORS = {
     "swim": "#0984E3",
     "bike": "#00B894",
     "run": "#E17055",
     "strength": "#6C5CE7",
     "mobility": "#FDCB6E",
+    "recovery": "#81ECEC",
+    "race": "#E84393",
+    "rest": "#636E72",
 }
 SPORT_ICONS = {
     "swim": "🏊",
@@ -27,6 +30,9 @@ SPORT_ICONS = {
     "run": "🏃",
     "strength": "🏋️",
     "mobility": "🧘",
+    "recovery": "💤",
+    "race": "🏁",
+    "rest": "🛌",
 }
 
 INTENSITY_TYPES = ["easy", "tempo", "threshold", "intervals", "long", "brick", "drill", "recovery"]
@@ -47,6 +53,12 @@ STATUS_COLORS = {
     "completed": "#00B894",
     "skipped": "#D63031",
     "modified": "#FDCB6E",
+}
+STATUS_ICONS = {
+    "planned": "⏳",
+    "completed": "✅",
+    "skipped": "❌",
+    "modified": "🔄",
 }
 
 HR_ZONES = {

@@ -17,6 +17,7 @@
     --accent-yellow: #FDCB6E;
     --accent-red: #D63031;
     --accent-pink: #E84393;
+    --accent-cyan: #81ECEC;
     --border: #2D3148;
     --shadow: rgba(0, 0, 0, 0.3);
     --gradient-blue: linear-gradient(135deg, #0984E3, #6C5CE7);
@@ -31,6 +32,7 @@
     font-family: 'Inter', sans-serif;
 }
 
+/* Metric Cards */
 .metric-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -62,6 +64,7 @@
     letter-spacing: 0.5px;
 }
 
+/* Phase Badges */
 .phase-badge {
     display: inline-block;
     padding: 4px 12px;
@@ -78,6 +81,7 @@
 .phase-race { background: rgba(225, 112, 85, 0.2); color: #E17055; }
 .phase-taper { background: rgba(253, 203, 110, 0.2); color: #FDCB6E; }
 
+/* Workout Cards */
 .workout-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -91,6 +95,7 @@
 .workout-card:hover {
     background: var(--bg-hover);
     transform: translateX(4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .workout-card.swim { border-left-color: #0984E3; }
@@ -98,12 +103,16 @@
 .workout-card.run { border-left-color: #E17055; }
 .workout-card.strength { border-left-color: #6C5CE7; }
 .workout-card.mobility { border-left-color: #FDCB6E; }
+.workout-card.recovery { border-left-color: #81ECEC; }
+.workout-card.race { border-left-color: #E84393; }
 
+/* Status Colors */
 .status-completed { color: #00B894; }
 .status-planned { color: #636E72; }
 .status-skipped { color: #D63031; }
 .status-modified { color: #FDCB6E; }
 
+/* Calendar */
 .calendar-day {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -111,11 +120,12 @@
     padding: 8px;
     min-height: 80px;
     text-align: center;
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .calendar-day:hover {
     background: var(--bg-hover);
+    transform: scale(1.02);
 }
 
 .calendar-day.today {
@@ -123,6 +133,7 @@
     background: rgba(9, 132, 227, 0.1);
 }
 
+/* Readiness Gauge */
 .readiness-gauge {
     text-align: center;
     padding: 20px;
@@ -138,6 +149,7 @@
 .readiness-fatigued { color: #E17055; }
 .readiness-overtrained { color: #D63031; }
 
+/* Countdown Box */
 .countdown-box {
     background: var(--gradient-blue);
     border-radius: var(--radius-lg);
@@ -158,6 +170,7 @@
     margin-top: 8px;
 }
 
+/* Section Header */
 .section-header {
     font-size: 1.3rem;
     font-weight: 700;
@@ -166,6 +179,7 @@
     border-bottom: 2px solid var(--border);
 }
 
+/* Streamlit Overrides */
 .stMetric > div {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -181,4 +195,104 @@ div[data-testid="stExpander"] {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
+}
+
+/* Segment Block */
+.segment-block {
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 6px;
+    background: var(--bg-card);
+    transition: background 0.2s ease;
+}
+
+.segment-block:hover {
+    background: var(--bg-hover);
+}
+
+/* Tab Styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    padding: 4px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+}
+
+/* Buttons */
+.stButton > button {
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Form Submit Primary */
+.stButton > button[kind="primary"] {
+    background: var(--gradient-blue);
+    border: none;
+}
+
+/* File Uploader */
+[data-testid="stFileUploader"] {
+    background: var(--bg-card);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+}
+
+/* Data Table */
+.stDataFrame {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.workout-card, .metric-card, .segment-block {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive compact density */
+@media (max-width: 768px) {
+    .metric-card { padding: 12px; }
+    .metric-value { font-size: 1.5rem; }
+    .workout-card { padding: 10px; }
+    .countdown-number { font-size: 2.5rem; }
 }
