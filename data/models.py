@@ -2,7 +2,7 @@
 
 Provides dataclasses for athlete profile, workouts with structured segments,
 daily readiness logging, weekly summaries, comments, file attachments,
-uploads, and training phases.
+uploads, training phases, and daily completion tracking.
 """
 from dataclasses import dataclass, field, asdict
 from datetime import date, datetime
@@ -167,11 +167,11 @@ class Workout:
         if self.status == "planned":
             return None
         if self.actual_duration_min and self.planned_duration_min > 0:
-            dur_ratio = min(self.actual_duration_min / self.planned_duration_min, 1.5)
+            dur_ratio = min(float(self.actual_duration_min) / float(self.planned_duration_min), 1.5)
             tss_ratio = 1.0
             if self.tss_actual and self.tss_planned > 0:
-                tss_ratio = min(self.tss_actual / self.tss_planned, 1.5)
-            return round(min(100, (dur_ratio * 0.6 + tss_ratio * 0.4) * 100), 1)
+                tss_ratio = min(float(self.tss_actual) / float(self.tss_planned), 1.5)
+            return round(min(100.0, (dur_ratio * 0.6 + tss_ratio * 0.4) * 100.0), 1)
         return 80.0 if self.status == "completed" else 50.0
 
     def generate_segments_from_text(self) -> list:
@@ -199,7 +199,6 @@ class Workout:
             base_intensity = intensity_map.get(self.intensity, 0.5)
 
             if self.workout_type == "intervals" or "×" in self.main_set or "x" in self.main_set.lower():
-                # Parse interval structure
                 segments.append({
                     "name": "Main Set — Intervals",
                     "duration_min": main_dur * 0.7,
@@ -264,11 +263,11 @@ class DailyLog:
     def readiness_score(self) -> Optional[float]:
         scores = []
         if self.sleep_quality is not None:
-            scores.append(self.sleep_quality / 5 * 100)
+            scores.append(float(self.sleep_quality) / 5.0 * 100.0)
         if self.soreness is not None:
-            scores.append((6 - self.soreness) / 5 * 100)
+            scores.append(float(6 - self.soreness) / 5.0 * 100.0)
         if self.motivation is not None:
-            scores.append(self.motivation / 5 * 100)
+            scores.append(float(self.motivation) / 5.0 * 100.0)
         if not scores:
             return None
         return round(sum(scores) / len(scores), 1)
@@ -278,6 +277,22 @@ class DailyLog:
 
     @classmethod
     def from_dict(cls, d: dict) -> "DailyLog":
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+
+@dataclass
+class DailyCompletion:
+    """Tracks daily completion of training and nutrition targets."""
+    date: str = ""
+    training_done: bool = False
+    nutrition_done: bool = False
+    notes: str = ""
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "DailyCompletion":
         return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
 
 
@@ -304,8 +319,8 @@ class WeekSummary:
     @property
     def compliance_pct(self) -> float:
         if self.planned_sessions == 0:
-            return 0
-        return round(self.completed_sessions / self.planned_sessions * 100, 1)
+            return 0.0
+        return round(float(self.completed_sessions) / float(self.planned_sessions) * 100.0, 1)
 
     def to_dict(self) -> dict:
         d = asdict(self)

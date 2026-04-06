@@ -5,17 +5,17 @@ from datetime import date
 from data.store import load_workouts, add_workout, save_upload, load_uploads
 from data.models import Workout, WorkoutUpload
 from engine.parsers import parse_uploaded_file, parse_structured_text
-from config import SPORT_ICONS, SPORTS, INTENSITY_TYPES
+from config import SPORT_LABELS, SPORTS, INTENSITY_TYPES
 
-st.set_page_config(page_title="Upload | IronPlan", page_icon="📤", layout="wide")
+st.set_page_config(page_title="Upload | IronPlan", layout="wide")
 css_path = Path(__file__).parent.parent / "assets" / "style.css"
 if css_path.exists():
     st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
 
-st.markdown("# 📤 Upload & Import")
+st.markdown("# Upload and Import")
 st.markdown("Import workout data from files, manual entry, or pasted text.")
 
-tab1, tab2, tab3, tab4 = st.tabs(["📁 File Upload", "✏️ Manual Entry", "📋 Paste Text", "📜 Upload History"])
+tab1, tab2, tab3, tab4 = st.tabs(["File Upload", "Manual Entry", "Paste Text", "Upload History"])
 
 # === FILE UPLOAD ===
 with tab1:
@@ -39,11 +39,11 @@ with tab1:
         # Show warnings
         if result["warnings"]:
             for warn in result["warnings"]:
-                st.warning(f"⚠️ {warn}")
+                st.warning(warn)
 
         # Show metrics
         if result["metrics"]:
-            st.markdown("#### 📊 Parse Summary")
+            st.markdown("#### Parse Summary")
             met_cols = st.columns(len(result["metrics"]))
             for i, (key, val) in enumerate(result["metrics"].items()):
                 with met_cols[i]:
@@ -52,16 +52,16 @@ with tab1:
         # Preview workouts
         workouts_data = result.get("workouts", [])
         if workouts_data:
-            st.markdown(f"#### 🏋️ {len(workouts_data)} Workout(s) Found")
+            st.markdown(f"#### {len(workouts_data)} Workout(s) Found")
 
             for i, w_data in enumerate(workouts_data):
-                icon = SPORT_ICONS.get(w_data.get("sport", "run"), "❓")
+                sport_label = SPORT_LABELS.get(w_data.get("sport", "run"), "RUN")
                 desc = w_data.get("description", "Uploaded workout")
-                dur = w_data.get("actual_duration_min") or w_data.get("planned_duration_min", 0)
+                dur = int(w_data.get("actual_duration_min") or w_data.get("planned_duration_min", 0))
                 sport = w_data.get("sport", "run")
                 w_date = w_data.get("date", str(date.today()))
 
-                with st.expander(f"{icon} {desc} — {sport} · {dur}min · {w_date}", expanded=i == 0):
+                with st.expander(f"[{sport_label}] {desc} — {dur}min — {w_date}", expanded=i == 0):
                     # Allow editing before import
                     ec1, ec2 = st.columns(2)
                     with ec1:
@@ -78,7 +78,7 @@ with tab1:
                         w_data["planned_duration_min"] = st.number_input("Duration (min)", value=dur,
                                                                          min_value=0, key=f"up_dur_{i}")
                         w_data["actual_duration_min"] = w_data["planned_duration_min"]
-                        tss_val = w_data.get("tss_actual") or w_data.get("tss_planned", 0)
+                        tss_val = int(w_data.get("tss_actual") or w_data.get("tss_planned", 0))
                         w_data["tss_planned"] = st.number_input("TSS", value=tss_val, min_value=0, key=f"up_tss_{i}")
                         w_data["tss_actual"] = w_data["tss_planned"]
                         w_data["intensity"] = st.selectbox("Intensity", INTENSITY_TYPES,
@@ -102,7 +102,7 @@ with tab1:
                                 st.metric("Elevation", f"{w_data['elevation_m']} m")
 
             st.markdown("---")
-            if st.button("📥 Import All Workouts", type="primary", use_container_width=True):
+            if st.button("Import All Workouts", type="primary", use_container_width=True):
                 imported = 0
                 for w_data in workouts_data:
                     w_data.setdefault("workout_type", w_data.get("intensity", "easy"))
@@ -127,8 +127,7 @@ with tab1:
                 )
                 save_upload(upload)
 
-                st.success(f"✅ {imported} workout(s) imported successfully!")
-                st.balloons()
+                st.success(f"{imported} workout(s) imported successfully.")
                 st.rerun()
         else:
             if not result["warnings"]:
@@ -136,7 +135,7 @@ with tab1:
 
 # === MANUAL ENTRY ===
 with tab2:
-    st.markdown("### ✏️ Log a Workout Manually")
+    st.markdown("### Log a Workout Manually")
 
     with st.form("manual_workout_form"):
         mc1, mc2 = st.columns(2)
@@ -161,7 +160,7 @@ with tab2:
         m_purpose = st.text_input("Purpose")
         m_notes = st.text_area("Notes", height=60)
 
-        if st.form_submit_button("💾 Save Workout", type="primary"):
+        if st.form_submit_button("Save Workout", type="primary"):
             workout = Workout(
                 date=str(m_date),
                 sport=m_sport,
@@ -184,12 +183,12 @@ with tab2:
                 tss_actual=m_tss if m_status in ("completed", "modified") else None,
             )
             add_workout(workout)
-            st.success(f"✅ Workout saved: {workout.description}")
+            st.success(f"Workout saved: {workout.description}")
             st.rerun()
 
 # === PASTE TEXT ===
 with tab3:
-    st.markdown("### 📋 Paste Structured Workout Text")
+    st.markdown("### Paste Structured Workout Text")
     st.markdown("Paste a workout description and we'll parse it automatically.")
 
     pasted_text = st.text_area(
@@ -198,7 +197,7 @@ with tab3:
         placeholder="e.g.,\nTempo Run\n10 min warmup easy\n3x800m @4:40/km, 90s jog rest\n10 min cooldown",
     )
 
-    if pasted_text and st.button("🔍 Parse Text", type="primary"):
+    if pasted_text and st.button("Parse Text", type="primary"):
         result = parse_structured_text(pasted_text)
 
         if result["warnings"]:
@@ -206,16 +205,13 @@ with tab3:
                 st.warning(warn)
 
         for w_data in result.get("workouts", []):
-            icon = SPORT_ICONS.get(w_data.get("sport", "run"), "❓")
-            st.markdown(f"""
-            <div class="workout-card {w_data.get('sport', 'run')}">
-                <strong>{icon} {w_data.get('description', 'Parsed workout')}</strong>
-                <span style="margin-left:12px; font-size:0.85rem;">
-                    {w_data.get('sport', 'run').capitalize()} · {w_data.get('intensity', 'easy')} ·
-                    {w_data.get('planned_duration_min', 0)}min
-                </span>
-            </div>
-            """, unsafe_allow_html=True)
+            sport_label = SPORT_LABELS.get(w_data.get("sport", "run"), "RUN")
+            with st.container(border=True):
+                st.markdown(
+                    f"**[{sport_label}] {w_data.get('description', 'Parsed workout')}** — "
+                    f"{w_data.get('sport', 'run').capitalize()} / {w_data.get('intensity', 'easy')} / "
+                    f"{w_data.get('planned_duration_min', 0)}min"
+                )
 
             with st.expander("Edit before importing"):
                 p1, p2 = st.columns(2)
@@ -224,11 +220,11 @@ with tab3:
                     w_data["sport"] = st.selectbox("Sport", ["swim", "bike", "run", "strength", "mobility"],
                                                     key="paste_sport")
                 with p2:
-                    w_data["planned_duration_min"] = st.number_input("Duration", value=w_data.get("planned_duration_min", 60),
+                    w_data["planned_duration_min"] = st.number_input("Duration", value=int(w_data.get("planned_duration_min", 60)),
                                                                       key="paste_dur")
                     w_data["intensity"] = st.selectbox("Intensity", INTENSITY_TYPES, key="paste_int")
 
-            if st.button("📥 Import", key="import_paste"):
+            if st.button("Import", key="import_paste"):
                 w_data.setdefault("workout_type", w_data.get("intensity", "easy"))
                 w_data.setdefault("warmup", "")
                 w_data.setdefault("cooldown", "")
@@ -239,29 +235,22 @@ with tab3:
 
                 workout = Workout.from_dict(w_data)
                 add_workout(workout)
-                st.success("✅ Workout imported!")
+                st.success("Workout imported.")
                 st.rerun()
 
 # === UPLOAD HISTORY ===
 with tab4:
-    st.markdown("### 📜 Upload History")
+    st.markdown("### Upload History")
     uploads = load_uploads()
 
     if uploads:
         for u in reversed(uploads):
-            status_color = "#00B894" if u.status == "imported" else "#FDCB6E" if u.status == "pending" else "#D63031"
-            st.markdown(f"""
-            <div style="padding:10px 16px; border-left:3px solid {status_color}; margin-bottom:6px;
-                background:var(--bg-card); border-radius:0 8px 8px 0;">
-                <div style="display:flex; justify-content:space-between;">
-                    <strong>{u.filename}</strong>
-                    <span style="color:{status_color}; font-size:0.85rem;">{u.status.upper()}</span>
-                </div>
-                <div style="font-size:0.78rem; color:var(--text-muted);">
-                    {u.file_format.upper()} · {u.upload_date[:16]}
-                </div>
-                {f'<div style="font-size:0.72rem; color:var(--text-muted);">{u.parsed_metrics}</div>' if u.parsed_metrics else ''}
-            </div>
-            """, unsafe_allow_html=True)
+            with st.container(border=True):
+                uc1, uc2 = st.columns([3, 1])
+                with uc1:
+                    st.markdown(f"**{u.filename}**")
+                    st.caption(f"{u.file_format.upper()} | {u.upload_date[:16]}")
+                with uc2:
+                    st.markdown(f"**{u.status.upper()}**")
     else:
         st.info("No uploads yet. Use the File Upload tab to import workout data.")

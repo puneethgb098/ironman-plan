@@ -31,10 +31,10 @@ def get_month_calendar(workouts: list[Workout], year: int, month: int) -> list[l
                 "sport_icons": [],
             }
             for w in day_data["workouts"]:
-                from config import SPORT_ICONS
-                icon = SPORT_ICONS.get(w.sport, "❓")
-                if icon not in day_data["sport_icons"]:
-                    day_data["sport_icons"].append(icon)
+                from config import SPORT_LABELS
+                label = SPORT_LABELS.get(w.sport, w.sport[:3].upper())
+                if label not in day_data["sport_icons"]:
+                    day_data["sport_icons"].append(label)
             week_row.append(day_data)
         result.append(week_row)
     return result

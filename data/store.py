@@ -1,7 +1,7 @@
 """JSON-based data persistence layer.
 
 Provides CRUD operations for workouts, athlete profiles, daily logs,
-and workout uploads with search, duplicate, and reschedule support.
+daily completions, and workout uploads with search, duplicate, and reschedule support.
 """
 import json
 import os
@@ -9,7 +9,7 @@ import copy
 import uuid
 from pathlib import Path
 from typing import Optional
-from data.models import AthleteProfile, Workout, DailyLog, WorkoutUpload
+from data.models import AthleteProfile, Workout, DailyLog, DailyCompletion, WorkoutUpload
 
 DATA_DIR = Path(__file__).parent.parent / "app_data"
 UPLOADS_DIR = DATA_DIR / "uploads"
@@ -222,6 +222,34 @@ def save_daily_log(log: DailyLog):
     logs = load_daily_logs()
     logs[log.date] = log
     save_daily_logs(logs)
+
+
+# --- Daily Completions ---
+
+def load_daily_completions() -> dict[str, DailyCompletion]:
+    """Load all daily completion records."""
+    data = _load_json("daily_completions.json")
+    if not data:
+        return {}
+    return {k: DailyCompletion.from_dict(v) for k, v in data.items()}
+
+
+def save_daily_completions(completions: dict[str, DailyCompletion]):
+    """Save all daily completion records."""
+    _save_json("daily_completions.json", {k: v.to_dict() for k, v in completions.items()})
+
+
+def save_daily_completion(completion: DailyCompletion):
+    """Save a single daily completion record."""
+    completions = load_daily_completions()
+    completions[completion.date] = completion
+    save_daily_completions(completions)
+
+
+def get_daily_completion(dt: str) -> DailyCompletion:
+    """Get completion record for a date, returning default if none exists."""
+    completions = load_daily_completions()
+    return completions.get(dt, DailyCompletion(date=dt))
 
 
 # --- Uploads ---

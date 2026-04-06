@@ -24,15 +24,15 @@ SPORT_COLORS = {
     "race": "#E84393",
     "rest": "#636E72",
 }
-SPORT_ICONS = {
-    "swim": "🏊",
-    "bike": "🚴",
-    "run": "🏃",
-    "strength": "🏋️",
-    "mobility": "🧘",
-    "recovery": "💤",
-    "race": "🏁",
-    "rest": "🛌",
+SPORT_LABELS = {
+    "swim": "SWIM",
+    "bike": "BIKE",
+    "run": "RUN",
+    "strength": "STR",
+    "mobility": "MOB",
+    "recovery": "REC",
+    "race": "RACE",
+    "rest": "REST",
 }
 
 INTENSITY_TYPES = ["easy", "tempo", "threshold", "intervals", "long", "brick", "drill", "recovery"]
@@ -54,11 +54,11 @@ STATUS_COLORS = {
     "skipped": "#D63031",
     "modified": "#FDCB6E",
 }
-STATUS_ICONS = {
-    "planned": "⏳",
-    "completed": "✅",
-    "skipped": "❌",
-    "modified": "🔄",
+STATUS_LABELS = {
+    "planned": "PLANNED",
+    "completed": "DONE",
+    "skipped": "SKIPPED",
+    "modified": "MODIFIED",
 }
 
 HR_ZONES = {
@@ -101,5 +101,4 @@ DEFAULT_ATHLETE = {
     "race_date": str(RACE_DATE),
 }
 
-APP_TITLE = "🏊🚴🏃 IronPlan 70.3"
-APP_ICON = "🏊"
+APP_TITLE = "IronPlan 70.3"

@@ -2,28 +2,42 @@
 import streamlit as st
 from pathlib import Path
 from datetime import date, timedelta
-from data.store import load_workouts, update_workout, save_daily_log
-from data.models import DailyLog
-from config import SPORT_ICONS, INTENSITY_COLORS, STATUS_COLORS, STATUS_ICONS
+from data.store import load_workouts, update_workout, save_daily_log, save_daily_completion, get_daily_completion
+from data.models import DailyLog, DailyCompletion
+from config import SPORT_LABELS, STATUS_LABELS
 from components.cards import render_workout_card
 from components.workout_detail import render_workout_detail
 
-st.set_page_config(page_title="Workout Log | IronPlan", page_icon="✏️", layout="wide")
+st.set_page_config(page_title="Workout Log | IronPlan", layout="wide")
 css_path = Path(__file__).parent.parent / "assets" / "style.css"
 if css_path.exists():
     st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
 
-st.markdown("# ✏️ Workout Log")
+st.markdown("# Workout Log")
 
 workouts = load_workouts()
 today = date.today()
 
-tab1, tab2 = st.tabs(["📝 Log Workouts", "🔋 Daily Readiness"])
+tab1, tab2 = st.tabs(["Log Workouts", "Daily Readiness"])
 
 with tab1:
     log_date = st.date_input("Date", value=today)
     log_str = str(log_date)
     day_workouts = [w for w in workouts if w.date == log_str]
+
+    # Daily completion toggle
+    st.markdown("#### Daily Completion")
+    dc = get_daily_completion(log_str)
+    dc1, dc2 = st.columns(2)
+    with dc1:
+        t_done = st.checkbox("Training completed", value=dc.training_done, key=f"log_dc_t_{log_str}")
+    with dc2:
+        n_done = st.checkbox("Nutrition targets met", value=dc.nutrition_done, key=f"log_dc_n_{log_str}")
+    if t_done != dc.training_done or n_done != dc.nutrition_done:
+        save_daily_completion(DailyCompletion(date=log_str, training_done=t_done, nutrition_done=n_done))
+        st.success("Daily completion updated.")
+
+    st.markdown("---")
 
     if not day_workouts:
         st.info(f"No workouts scheduled for {log_date.strftime('%A, %B %d')}.")
@@ -34,11 +48,11 @@ with tab1:
         for w in day_workouts:
             render_workout_card(w, clickable=False)
 
-            with st.expander(f"📝 Log — {w.description}", expanded=w.date == str(today)):
-                st.markdown(f"**🔥 Warm-up:** {w.warmup}")
-                st.markdown(f"**💪 Main Set:** {w.main_set}")
-                st.markdown(f"**❄️ Cool-down:** {w.cooldown}")
-                st.markdown(f"**🎯 Purpose:** *{w.purpose}*")
+            with st.expander(f"Log — {w.description}", expanded=w.date == str(today)):
+                st.markdown(f"**Warm-up:** {w.warmup}")
+                st.markdown(f"**Main Set:** {w.main_set}")
+                st.markdown(f"**Cool-down:** {w.cooldown}")
+                st.markdown(f"**Purpose:** *{w.purpose}*")
                 st.markdown(f"**Planned:** {w.planned_duration_min} min | TSS: {w.tss_planned}")
 
                 st.markdown("---")
@@ -55,7 +69,7 @@ with tab1:
                         actual_dur = st.number_input(
                             "Actual Duration (min)",
                             min_value=0, max_value=600,
-                            value=w.actual_duration_min or w.planned_duration_min,
+                            value=int(w.actual_duration_min or w.planned_duration_min or 0),
                             key=f"dur_{w.id}"
                         )
                         actual_dist = st.number_input(
@@ -66,18 +80,18 @@ with tab1:
                             key=f"dist_{w.id}"
                         )
                     with lc2:
-                        rpe = st.slider("RPE (1-10)", 1, 10, w.rpe or 5, key=f"rpe_{w.id}")
+                        rpe = st.slider("RPE (1-10)", 1, 10, int(w.rpe or 5), key=f"rpe_{w.id}")
                         actual_hr = st.number_input(
                             "Avg HR (optional)", min_value=0, max_value=220,
-                            value=w.actual_hr_avg or 0, key=f"hr_{w.id}"
+                            value=int(w.actual_hr_avg or 0), key=f"hr_{w.id}"
                         )
                         avg_power = st.number_input(
                             "Avg Power (W, optional)", min_value=0, max_value=500,
-                            value=w.avg_power_watts or 0, key=f"power_{w.id}"
+                            value=int(w.avg_power_watts or 0), key=f"power_{w.id}"
                         )
                     notes = st.text_area("Notes", value=w.notes, key=f"notes_{w.id}", height=60)
 
-                    if st.form_submit_button("💾 Save", type="primary"):
+                    if st.form_submit_button("Save", type="primary"):
                         rpe_factor = {3: 0.6, 4: 0.7, 5: 0.85, 6: 1.0, 7: 1.15, 8: 1.35, 9: 1.5, 10: 1.7}
                         actual_tss = int(actual_dur * rpe_factor.get(rpe, 1.0))
 
@@ -92,12 +106,12 @@ with tab1:
                             "tss_actual": actual_tss,
                         }
                         update_workout(w.id, updates)
-                        st.success(f"✅ {w.description} logged as {new_status.upper()}!")
+                        st.success(f"{w.description} logged as {new_status.upper()}.")
                         st.rerun()
 
     # Recent Activity
     st.markdown("---")
-    st.markdown("### 📋 Recent Activity")
+    st.markdown("### Recent Activity")
     recent_start = today - timedelta(days=7)
     recent = [w for w in workouts if str(recent_start) <= w.date <= str(today) and w.status != "planned"]
     recent.sort(key=lambda x: x.date, reverse=True)
@@ -109,7 +123,7 @@ with tab1:
         st.caption("No completed workouts in the last 7 days.")
 
 with tab2:
-    st.markdown("### 🔋 Daily Readiness Check-in")
+    st.markdown("### Daily Readiness Check-in")
     st.markdown("Log your morning readiness data to track recovery trends.")
 
     readiness_date = st.date_input("Date", value=today, key="readiness_date")
@@ -128,7 +142,7 @@ with tab2:
 
         r_notes = st.text_input("Notes (optional)")
 
-        if st.form_submit_button("💾 Save Readiness Data", type="primary"):
+        if st.form_submit_button("Save Readiness Data", type="primary"):
             log = DailyLog(
                 date=str(readiness_date),
                 morning_rhr=morning_rhr,
@@ -140,13 +154,13 @@ with tab2:
                 notes=r_notes,
             )
             save_daily_log(log)
-            st.success(f"✅ Readiness data saved for {readiness_date.strftime('%B %d')}!")
+            st.success(f"Readiness data saved for {readiness_date.strftime('%B %d')}.")
 
             score = log.readiness_score()
             if score:
                 if score >= 75:
-                    st.markdown(f"### 💪 Readiness: **{score:.0f}/100** — You're ready to push!")
+                    st.markdown(f"### Readiness: **{score:.0f}/100** — You're ready to push")
                 elif score >= 50:
-                    st.markdown(f"### ⚡ Readiness: **{score:.0f}/100** — Train normally")
+                    st.markdown(f"### Readiness: **{score:.0f}/100** — Train normally")
                 else:
-                    st.markdown(f"### ⚠️ Readiness: **{score:.0f}/100** — Consider an easy day")
+                    st.markdown(f"### Readiness: **{score:.0f}/100** — Consider an easy day")
