@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IronPlan 70.3 — Endurance Training Dashboard</title>
+  <meta name="description" content="Industry-level endurance training dashboard for Ironman 70.3 preparation. Calendar-first interface with structured workouts, performance analytics, and periodized training plans.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🏊</text></svg>">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<!-- Mobile Hamburger -->
+<button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
+  <span></span><span></span><span></span>
+</button>
+
+<!-- Sidebar Overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="app-layout">
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" stroke="url(#lg)" stroke-width="2"/><path d="M9 14l3 3 7-7" stroke="url(#lg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="lg" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs></svg>
+        IronPlan 70.3
+      </div>
+      <div class="sidebar-subtitle">Endurance Training System</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Dashboard</div>
+      <div class="nav-item active" data-view="calendar" id="navCalendar">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Calendar
+      </div>
+      <div class="nav-item" data-view="analytics" id="navAnalytics">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Analytics
+      </div>
+      <div class="nav-item" data-view="plan" id="navPlan">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Training Plan
+      </div>
+
+      <div class="nav-section-title">Tools</div>
+      <div class="nav-item" id="navBuilder">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        New Workout
+      </div>
+      <div class="nav-item" id="navLibrary">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Workout Library
+      </div>
+
+      <div class="nav-section-title">Profile</div>
+      <div class="nav-item" data-view="profile" id="navProfile">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Athlete Profile
+      </div>
+    </nav>
+
+    <div class="sidebar-athlete">
+      <div class="athlete-card">
+        <div class="athlete-avatar" id="athleteAvatar">P</div>
+        <div class="athlete-info">
+          <div class="athlete-name" id="athleteName">Puneeth</div>
+          <div class="athlete-goal" id="athleteGoal">Ironman 70.3 Goa</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h1 class="page-title" id="pageTitle">Training Calendar</h1>
+        <div class="race-countdown">
+          <span>Race in</span>
+          <span class="countdown-number" id="countdownDays">—</span>
+          <span>days</span>
+        </div>
+      </div>
+      <div class="top-bar-metrics stagger" id="topMetrics">
+        <div class="mini-metric">
+          <div class="mini-metric-label">Week</div>
+          <div class="mini-metric-value" id="metricWeek">—</div>
+        </div>
+        <div class="mini-metric">
+          <div class="mini-metric-label">Phase</div>
+          <div class="mini-metric-value" id="metricPhase" style="font-size:0.7rem;font-family:var(--font-sans)">—</div>
+        </div>
+        <div class="mini-metric">
+          <div class="mini-metric-label">CTL</div>
+          <div class="mini-metric-value" id="metricCTL">—</div>
+        </div>
+        <div class="mini-metric">
+          <div class="mini-metric-label">TSB</div>
+          <div class="mini-metric-value" id="metricTSB">—</div>
+        </div>
+        <div class="mini-metric">
+          <div class="mini-metric-label">Compliance</div>
+          <div class="mini-metric-value" id="metricCompliance">—</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content views -->
+    <div class="content-area" id="contentArea">
+
+      <!-- ═══ CALENDAR VIEW ═══ -->
+      <div id="calendarView">
+        <!-- Phase Timeline -->
+        <div class="phase-timeline" id="phaseTimeline"></div>
+
+        <!-- Key Metrics -->
+        <div class="metrics-grid stagger" id="metricsGrid"></div>
+
+        <!-- Calendar Controls -->
+        <div class="calendar-controls">
+          <div class="calendar-nav">
+            <button class="cal-nav-btn" id="calPrev" aria-label="Previous month">‹</button>
+            <div class="cal-month-label" id="calMonthLabel">—</div>
+            <button class="cal-nav-btn" id="calNext" aria-label="Next month">›</button>
+            <button class="cal-today-btn" id="calToday">Today</button>
+          </div>
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="month" id="viewMonth">Month</button>
+            <button class="view-btn" data-view="week" id="viewWeek">Week</button>
+          </div>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+
+      <!-- ═══ ANALYTICS VIEW ═══ -->
+      <div id="analyticsView" class="hidden">
+        <div class="charts-grid" id="chartsGrid"></div>
+      </div>
+
+      <!-- ═══ TRAINING PLAN VIEW ═══ -->
+      <div id="planView" class="hidden">
+        <div id="planContent"></div>
+      </div>
+
+      <!-- ═══ PROFILE VIEW ═══ -->
+      <div id="profileView" class="hidden">
+        <div id="profileContent"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ═══ WORKOUT DETAIL PANEL ═══ -->
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-header">
+    <div>
+      <div class="detail-sport-badge" id="detailBadge">SWIM</div>
+      <div class="detail-title" id="detailTitle">—</div>
+      <div class="detail-date" id="detailDate">—</div>
+    </div>
+    <button class="detail-close" id="detailClose" aria-label="Close workout detail">✕</button>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+  <div class="detail-actions" id="detailActions"></div>
+</div>
+
+<!-- ═══ WORKOUT LIBRARY PANEL ═══ -->
+<div class="library-panel" id="libraryPanel">
+  <div class="library-header">
+    <div class="library-title">Workout Library</div>
+    <button class="library-close" id="libraryClose" aria-label="Close library">✕</button>
+  </div>
+  <div id="libraryContent"></div>
+</div>
+
+<!-- ═══ WORKOUT BUILDER MODAL ═══ -->
+<div class="modal-overlay" id="builderModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Build Workout</div>
+      <button class="detail-close" id="builderClose" aria-label="Close builder">✕</button>
+    </div>
+    <div class="modal-body" id="builderBody">
+      <div class="detail-field">
+        <label>Sport</label>
+        <select id="builderSport">
+          <option value="swim">🏊 Swim</option>
+          <option value="bike">🚴 Bike</option>
+          <option value="run">🏃 Run</option>
+          <option value="strength">🏋️ Strength</option>
+          <option value="mobility">🧘 Mobility</option>
+          <option value="recovery">💤 Recovery</option>
+        </select>
+      </div>
+      <div class="detail-field">
+        <label>Description</label>
+        <input type="text" id="builderDesc" placeholder="e.g., Tempo Run">
+      </div>
+      <div class="detail-field">
+        <label>Date</label>
+        <input type="date" id="builderDate">
+      </div>
+      <div class="flex gap-md">
+        <div class="detail-field" style="flex:1">
+          <label>Duration (min)</label>
+          <input type="number" id="builderDuration" value="45" min="0">
+        </div>
+        <div class="detail-field" style="flex:1">
+          <label>Intensity</label>
+          <select id="builderIntensity">
+            <option value="easy">Easy (Z1-Z2)</option>
+            <option value="tempo">Tempo (Z3)</option>
+            <option value="threshold">Threshold (Z4)</option>
+            <option value="intervals">Intervals (Z5)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="detail-section-title" style="margin-top:var(--space-md)">Workout Structure</div>
+      <div class="builder-segments" id="builderSegments">
+        <div class="builder-segment">
+          <input type="text" placeholder="Warm-up" value="10 min easy">
+          <input type="number" placeholder="Min" value="10" min="0">
+          <select><option>Z1</option><option>Z2</option><option selected>Z1-Z2</option></select>
+          <button class="remove-segment">✕</button>
+        </div>
+        <div class="builder-segment">
+          <input type="text" placeholder="Main set" value="Main workout">
+          <input type="number" placeholder="Min" value="25" min="0">
+          <select><option>Z1</option><option selected>Z2</option><option>Z3</option><option>Z4</option><option>Z5</option></select>
+          <button class="remove-segment">✕</button>
+        </div>
+        <div class="builder-segment">
+          <input type="text" placeholder="Cool-down" value="5 min easy">
+          <input type="number" placeholder="Min" value="5" min="0">
+          <select><option selected>Z1</option><option>Z2</option></select>
+          <button class="remove-segment">✕</button>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="addSegmentBtn">+ Add Segment</button>
+
+      <div class="detail-field mt-md">
+        <label>Purpose / Notes</label>
+        <textarea id="builderNotes" placeholder="Training goal for this session..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="builderCancel">Cancel</button>
+      <button class="btn btn-primary" id="builderSave">Save Workout</button>
+    </div>
+  </div>
+</div>
+
+<script src="training-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
