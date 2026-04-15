@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IronPlan 70.3 — Endurance Training Dashboard</title>
-  <meta name="description" content="Industry-level endurance training dashboard for Ironman 70.3 preparation. Calendar-first interface with structured workouts, performance analytics, and periodized training plans.">
+  <meta name="description" content="Industry-level endurance training dashboard for Ironman 70.3 Goa. Calendar-first interface with structured workouts, performance analytics, Strava integration, and periodized training plans.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🏊</text></svg>">
   <link rel="stylesheet" href="index.css">
 </head>
@@ -30,10 +30,14 @@
     </div>
 
     <nav class="sidebar-nav">
-      <div class="nav-section-title">Dashboard</div>
-      <div class="nav-item active" data-view="calendar" id="navCalendar">
+      <div class="nav-section-title">Overview</div>
+      <div class="nav-item active" data-view="dashboard" id="navDashboard">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-view="calendar" id="navCalendar">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Calendar
+        Workout Logs
       </div>
       <div class="nav-item" data-view="analytics" id="navAnalytics">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -42,6 +46,12 @@
       <div class="nav-item" data-view="plan" id="navPlan">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         Training Plan
+      </div>
+
+      <div class="nav-section-title">Health</div>
+      <div class="nav-item" data-view="nutrition" id="navNutrition">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Nutrition
       </div>
 
       <div class="nav-section-title">Tools</div>
@@ -77,7 +87,7 @@
     <!-- Top Bar -->
     <header class="top-bar">
       <div class="top-bar-left">
-        <h1 class="page-title" id="pageTitle">Training Calendar</h1>
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
         <div class="race-countdown">
           <span>Race in</span>
           <span class="countdown-number" id="countdownDays">—</span>
@@ -111,8 +121,13 @@
     <!-- Content views -->
     <div class="content-area" id="contentArea">
 
-      <!-- ═══ CALENDAR VIEW ═══ -->
-      <div id="calendarView">
+      <!-- ═══ DASHBOARD VIEW ═══ -->
+      <div id="dashboardView">
+        <div id="dashboardContent"></div>
+      </div>
+
+      <!-- ═══ CALENDAR VIEW (Workout Logs) ═══ -->
+      <div id="calendarView" class="hidden">
         <!-- Phase Timeline -->
         <div class="phase-timeline" id="phaseTimeline"></div>
 
@@ -145,6 +160,11 @@
       <!-- ═══ TRAINING PLAN VIEW ═══ -->
       <div id="planView" class="hidden">
         <div id="planContent"></div>
+      </div>
+
+      <!-- ═══ NUTRITION VIEW ═══ -->
+      <div id="nutritionView" class="hidden">
+        <div id="nutritionContent"></div>
       </div>
 
       <!-- ═══ PROFILE VIEW ═══ -->

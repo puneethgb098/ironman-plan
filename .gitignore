@@ -1,9 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python leftovers (old Streamlit version)
 __pycache__/
 *.pyc
-*.pyo
-app_data/
-.streamlit/secrets.toml
-*.egg-info/
-dist/
-build/
-.env
+.streamlit/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# PDF source
+*.pdf
+
+# Text extracts
+pdf_content.txt

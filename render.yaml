@@ -1,0 +1,19 @@
+# Render.com deployment configuration
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: ironplan-70-3
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BASE_URL
+        sync: false  # Set manually in Render dashboard after deploy
+      - key: STRAVA_CLIENT_ID
+        sync: false  # Set manually in Render dashboard
+      - key: STRAVA_CLIENT_SECRET
+        sync: false  # Set manually in Render dashboard

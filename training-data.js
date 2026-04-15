@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
    IRONPLAN 70.3 — Training Data Engine
-   30-week periodized plan · 80/20 polarized · science-based
+   20-week periodized plan from Strategic Training Protocol PDF
+   Mon/Thu rest · 2-2-2 rule · Hybrid athlete approach
    ═══════════════════════════════════════════════════════════════ */
 
 const TrainingData = (() => {
@@ -18,9 +19,9 @@ const TrainingData = (() => {
         fatMassKg: 4.6,
         bodyFatPct: 7.9,
         fiveKPB: "27:30",
-        fiveKPace: "5:30",       // min/km
-        cyclingRange: 20,         // km/hr avg
-        swimLevel: 0,             // 0-10
+        fiveKPace: "5:30",
+        cyclingRange: 20,
+        swimLevel: 0,
         ftpWatts: null,
         swimPace100m: null,
         easyRunPace: "6:00",
@@ -51,19 +52,20 @@ const TrainingData = (() => {
 
     // ── Race & Plan Config ───────────────────────────────────────
     const RACE_NAME = "Ironman 70.3 Goa";
-    const RACE_DATE = new Date(2026, 9, 25); // Oct 25, 2026
-    const PLAN_START = new Date(2026, 2, 27); // Mar 27, 2026
+    const PLAN_START = new Date(2026, 3, 13); // Mon Apr 13, 2026 — Week 1 starts
+    const RACE_DATE = new Date(2026, 7, 30);  // Sun Aug 30, 2026 — Week 20 Sunday
+
+    // Race distances
+    const RACE_DISTANCES = {
+        swim: 1.9,   // km
+        bike: 90,    // km
+        run: 21.1,   // km (half marathon)
+    };
 
     // ── Sport & Intensity Colors ─────────────────────────────────
     const SPORT_COLORS = {
-        swim: "#0984E3",
-        bike: "#00B894",
-        run: "#E17055",
-        strength: "#6C5CE7",
-        mobility: "#FDCB6E",
-        recovery: "#81ECEC",
-        race: "#E84393",
-        rest: "#636E72",
+        swim: "#0984E3", bike: "#00B894", run: "#E17055", strength: "#6C5CE7",
+        mobility: "#FDCB6E", recovery: "#81ECEC", race: "#E84393", rest: "#636E72",
     };
 
     const SPORT_ICONS = {
@@ -72,615 +74,475 @@ const TrainingData = (() => {
     };
 
     const INTENSITY_COLORS = {
-        easy: "#00B894",
-        tempo: "#0984E3",
-        threshold: "#E17055",
-        intervals: "#D63031",
-        long: "#6C5CE7",
-        brick: "#E84393",
-        drill: "#FDCB6E",
-        recovery: "#81ECEC",
+        easy: "#00B894", tempo: "#0984E3", threshold: "#E17055",
+        intervals: "#D63031", long: "#6C5CE7", brick: "#E84393",
+        drill: "#FDCB6E", recovery: "#81ECEC",
     };
 
-    // ── Phase Definitions ────────────────────────────────────────
+    // ── Phase Definitions (20-week plan from PDF) ────────────────
     const PHASES = [
         {
-            name: "Swim Acquisition + Transition", weeks: 6, color: "#6C5CE7",
-            desc: "Build water comfort, establish aerobic base in run/bike, introduce tri-specific strength"
+            name: "Aquatic Immersion & Foundation", weeks: 4, color: "#6C5CE7",
+            desc: "Master the water from zero. 3x weekly morning swims for neuromuscular patterning. Maintenance running and aerobic cycling base."
         },
         {
-            name: "Aerobic Base", weeks: 8, color: "#0984E3",
-            desc: "80/20 polarized focus — high-volume Z2 across all three disciplines, technique refinement"
+            name: "2-2-2 Hybrid Balance", weeks: 8, color: "#0984E3",
+            desc: "Expand structural tolerance. 2 swims/week, increase cycling saddle time, maintain half-marathon readiness."
         },
         {
-            name: "Build", weeks: 8, color: "#00B894",
-            desc: "Introduce threshold & VO2max work, brick sessions, race-pace familiarity"
+            name: "Specificity & Heat Acclimation", weeks: 5, color: "#00B894",
+            desc: "Simulate Goa race conditions. Race-pace intervals, open-water ocean simulation, GI nutrition practice."
         },
         {
-            name: "Race-Specific", weeks: 6, color: "#E17055",
-            desc: "Race simulations, open-water prep, nutrition rehearsal, peak fitness"
-        },
-        {
-            name: "Taper", weeks: 2, color: "#FDCB6E",
-            desc: "Volume reduction, maintain intensity, race-day mental preparation"
+            name: "Peak & Taper", weeks: 3, color: "#FDCB6E",
+            desc: "Maximize readiness, shed fatigue. 2-3 week volume reduction, glycogen supercompensation, neural sharpening."
         },
     ];
 
-    // ── Weekly Templates ─────────────────────────────────────────
+    // ── Weekly Templates (Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6) ──
+    // Mon/Thu = REST days (office 09:00-21:00)
+    // Wed/Sun = Hardest days (before rest days)
     const WEEKLY_TEMPLATES = {
 
-        // ── PHASE 1: SWIM ACQUISITION + TRANSITION (6 weeks) ──────
-        "Swim Acquisition + Transition": {
-            targetHours: 9.5,
+        // ═══ PHASE 1: Aquatic Immersion & Foundation (Weeks 1-4) ═══
+        // 3 swims/week (Tue, Fri, Sat), strength Tue/Fri, rest Mon/Thu
+        "Aquatic Immersion & Foundation": {
+            targetHours: 9,
             sessions: [
-                // Monday
+                // Monday - REST
                 {
-                    day: 0, sport: "swim", type: "drill", duration: 45, intensity: "easy", tss: 25,
-                    desc: "Coached swim lesson",
+                    day: 0, sport: "rest", type: "recovery", duration: 0, intensity: "easy", tss: 0,
+                    desc: "Rest Day",
+                    warmup: "—", main: "Complete rest — office day (09:00-21:00). Focus on sleep, hydration, high-protein nutrition.",
+                    cooldown: "—", purpose: "Recovery from Sunday's hard session. Anabolic nutrition priority.",
+                    zones: "N/A", rpe: "0"
+                },
+
+                // Tuesday - AM Swim (Coached) + PM Strength A (Pull Dominant)
+                {
+                    day: 1, sport: "swim", type: "drill", duration: 45, intensity: "easy", tss: 25,
+                    desc: "Coached Swim Lesson",
                     warmup: "Water comfort drills, floating, wall kicks",
-                    main: "Coach-led technique: body position, kick, bilateral breathing",
+                    main: "Coach-led technique: body position, kick timing, bilateral breathing. 6×25m freestyle attempts with rest.",
                     cooldown: "5 min gentle floating, relaxation",
-                    purpose: "Water comfort and basic freestyle mechanics",
+                    purpose: "Water comfort and basic freestyle mechanics from absolute zero.",
                     zones: "Z1-Z2", rpe: "3-4"
                 },
-
-                // Tuesday
                 {
-                    day: 1, sport: "run", type: "easy", duration: 45, intensity: "easy", tss: 35,
-                    desc: "Easy Zone 2 run",
-                    warmup: "10 min walk → easy jog",
-                    main: "30 min Z2 @ 6:00-6:30/km (conversational pace)",
-                    cooldown: "5 min walk + dynamic stretch",
-                    purpose: "Aerobic base building — fat oxidation, capillary density",
+                    day: 1, sport: "strength", type: "drill", duration: 40, intensity: "tempo", tss: 30,
+                    desc: "Strength A: Pull Dominant + Push Accessory",
+                    warmup: "5 min dynamic: band pull-aparts, arm circles, scap push-ups",
+                    main: "Weighted Pull-Ups/Lat Pulldowns 3×6-8 | Incline DB Bench Press 3×8-10 | Chest-Supported DB Rows 3×8-10 | DB Lateral Raises 3×10-12 | Superset: Hammer Curls & Overhead Triceps Ext. 2×10-12",
+                    cooldown: "5 min stretch: lats, shoulders, chest",
+                    purpose: "V-taper width, lat development for swim stroke, shoulder health. RPE 8-9, 2 min rest between compounds.",
+                    zones: "N/A", rpe: "8-9"
+                },
+
+                // Wednesday - Hard Day: Cycling + Run
+                {
+                    day: 2, sport: "bike", type: "easy", duration: 60, intensity: "easy", tss: 40,
+                    desc: "Aerobic Cycling Base",
+                    warmup: "10 min easy spin, cadence 75-80 rpm",
+                    main: "45 min Z2 steady state, cadence focus 80-90 rpm, stay seated on inclines",
+                    cooldown: "5 min easy spin + stretch",
+                    purpose: "Time in saddle, pedaling efficiency, cycling aerobic base building.",
                     zones: "Z2", rpe: "4-5"
                 },
-
                 {
-                    day: 1, sport: "strength", type: "drill", duration: 50, intensity: "tempo", tss: 30,
-                    desc: "Gym Session 1: Strength / Lower + Core",
-                    warmup: "5 min dynamic: leg swings, hip circles, band walks",
-                    main: "Back Squat 3×8 @RPE7 | Bulgarian Split Squat 3×10/leg | RDL 3×10 @RPE7 | Standing Calf Raise 3×15 | Hanging Leg Raise 3×12 | Pallof Press 3×10/side",
-                    cooldown: "5 min static stretch: quads, hammies, hip flexors",
-                    purpose: "Lower body strength, posterior chain development, core stability",
-                    zones: "N/A", rpe: "7"
+                    day: 2, sport: "run", type: "easy", duration: 35, intensity: "easy", tss: 25,
+                    desc: "Easy Recovery Run",
+                    warmup: "5 min walk → easy jog",
+                    main: "25 min Z2 @ 6:00-6:30/km — truly conversational",
+                    cooldown: "5 min walk + dynamic stretch",
+                    purpose: "Aerobic flush, maintain running base without adding stress.",
+                    zones: "Z2", rpe: "4"
                 },
 
-                // Wednesday
+                // Thursday - REST
                 {
-                    day: 2, sport: "swim", type: "drill", duration: 40, intensity: "easy", tss: 22,
-                    desc: "Swim self-practice drills",
-                    warmup: "Water walking, kick with board 4×25m",
-                    main: "Breathing practice (6×25m freestyle attempts, 30s rest) + side-kick drill 4×25m",
-                    cooldown: "5 min floating + relaxation",
-                    purpose: "Reinforce coached lessons, build water confidence",
-                    zones: "Z1", rpe: "3-4"
+                    day: 3, sport: "rest", type: "recovery", duration: 0, intensity: "easy", tss: 0,
+                    desc: "Rest Day",
+                    warmup: "—", main: "Complete rest — office day (09:00-21:00). Anabolic nutrition, stretching if time.",
+                    cooldown: "—", purpose: "Recovery from Wednesday's hard session.",
+                    zones: "N/A", rpe: "0"
                 },
 
-                // Thursday
-                {
-                    day: 3, sport: "run", type: "tempo", duration: 50, intensity: "tempo", tss: 50,
-                    desc: "Tempo run — lactate threshold",
-                    warmup: "10 min easy jog + 4× strides",
-                    main: "25 min @ 5:20-5:30/km (RPE 6-7) — just below threshold",
-                    cooldown: "10 min easy jog + stretch",
-                    purpose: "Lactate threshold development, teach body to clear lactate",
-                    zones: "Z3", rpe: "6-7"
-                },
-
-                {
-                    day: 3, sport: "strength", type: "drill", duration: 50, intensity: "tempo", tss: 30,
-                    desc: "Gym Session 2: Hypertrophy / Upper + Core",
-                    warmup: "5 min dynamic: arm circles, band pull-aparts, scap push-ups",
-                    main: "Pull-ups 3×8 @RPE7 | Incline DB Press 3×10 | Cable Row 3×12 | DB Lateral Raise 3×15 | Face Pulls 3×15 | DB Bicep Curl 3×12 | Tricep Pushdown 3×12 | Plank 3×45s",
-                    cooldown: "5 min stretch: lats, shoulders, chest",
-                    purpose: "Upper body hypertrophy, swim-specific pulling strength, aesthetic physique",
-                    zones: "N/A", rpe: "7"
-                },
-
-                // Friday
+                // Friday - AM Swim (Self-Practice) + PM Strength B (Push Dominant)
                 {
                     day: 4, sport: "swim", type: "drill", duration: 40, intensity: "easy", tss: 22,
-                    desc: "Swim practice + technique focus",
-                    warmup: "Kick with board 4×25m, side-kick 4×25m",
-                    main: "Side breathing practice, 6×25m freestyle with rest, fingertip drag drill 4×25m",
-                    cooldown: "Easy floating 5 min",
-                    purpose: "Technique development, stroke refinement",
+                    desc: "Swim Self-Practice Drills",
+                    warmup: "Water walking, kick with board 4×25m",
+                    main: "Side breathing practice, 6×25m freestyle with rest, fingertip drag drill 4×25m, side-kick drill 4×25m",
+                    cooldown: "5 min floating + relaxation",
+                    purpose: "Reinforce coached lessons, build water confidence independently.",
                     zones: "Z1", rpe: "3-4"
                 },
+                {
+                    day: 4, sport: "strength", type: "drill", duration: 40, intensity: "tempo", tss: 30,
+                    desc: "Strength B: Push Dominant + Pull Accessory + Core",
+                    warmup: "5 min dynamic: arm circles, band pull-aparts, thoracic rotation",
+                    main: "Seated DB Overhead Press 3×6-8 | Neutral Grip Cable Rows/T-Bar Rows 3×8-10 | DB/Cable Chest Flyes 2×10-12 | Face Pulls 3×12-15 | Weighted Planks 3×45-60s",
+                    cooldown: "5 min stretch: shoulders, chest, core",
+                    purpose: "3D shoulders, chest thickness, anti-rotational core stability. Bulletproof rotator cuff.",
+                    zones: "N/A", rpe: "8-9"
+                },
 
-                // Saturday
+                // Saturday - AM Swim (Technique) + Long Ride
+                {
+                    day: 5, sport: "swim", type: "drill", duration: 40, intensity: "easy", tss: 22,
+                    desc: "Swim Technique Focus",
+                    warmup: "Kick with board 4×25m, side-kick 4×25m",
+                    main: "Catch-up drill 4×25m, fingertip drag 4×25m, 6×25m freestyle with focus on long glide per stroke",
+                    cooldown: "Easy floating 5 min",
+                    purpose: "Stroke refinement, develop feel for water, breathing rhythm.",
+                    zones: "Z1", rpe: "3-4"
+                },
                 {
                     day: 5, sport: "bike", type: "long", duration: 90, intensity: "easy", tss: 65,
-                    desc: "Long easy ride — aerobic base",
+                    desc: "Long Easy Ride — Aerobic Base",
                     warmup: "10 min easy spin, cadence 75-80 rpm",
-                    main: "70 min Z2, cadence focus 80-90 rpm, stay seated on climbs",
+                    main: "70 min Z2, cadence focus 80-90 rpm, practice nutrition every 30 min",
                     cooldown: "10 min easy spin + stretch",
-                    purpose: "Cycling aerobic base, pedaling efficiency, fat oxidation",
+                    purpose: "Cycling aerobic base, pedaling efficiency, fat oxidation, saddle time.",
                     zones: "Z2", rpe: "4-5"
                 },
 
-                {
-                    day: 5, sport: "strength", type: "drill", duration: 45, intensity: "tempo", tss: 25,
-                    desc: "Gym Session 3: Power / Full-Body",
-                    warmup: "5 min dynamic: inchworms, world's greatest stretch, jump squats",
-                    main: "Trap Bar Deadlift 3×6 @RPE8 | Push Press 3×6 | Weighted Dips 3×8 | Single-Arm DB Row 3×10/side | Lateral Raise 2×15 | Ab Wheel Rollout 3×10",
-                    cooldown: "5 min mobility: thoracic, hips, ankles",
-                    purpose: "Power development, full-body strength, lean mass maintenance",
-                    zones: "N/A", rpe: "7-8"
-                },
-
-                // Sunday
+                // Sunday - Hard Day: Long Run + Mobility
                 {
                     day: 6, sport: "run", type: "long", duration: 60, intensity: "easy", tss: 50,
-                    desc: "Long easy run — endurance",
+                    desc: "Long Easy Run — Endurance",
                     warmup: "10 min easy walk/jog",
-                    main: "45 min @ 6:15-6:30/km — fully conversational",
+                    main: "45 min @ 6:00-6:30/km — fully conversational, leveraging half-marathon stamina",
                     cooldown: "5 min walk + foam roll",
-                    purpose: "Aerobic endurance, teach body to burn fat at easy pace",
+                    purpose: "Aerobic endurance, fat oxidation, aerobic flush for the week.",
                     zones: "Z2", rpe: "4-5"
                 },
-
                 {
                     day: 6, sport: "mobility", type: "recovery", duration: 20, intensity: "easy", tss: 5,
-                    desc: "Foam roll + mobility",
+                    desc: "Foam Roll + Mobility",
                     warmup: "—",
                     main: "Hip 90/90, ankle dorsiflexion, thoracic rotation, foam roll ITB/quads/calves",
                     cooldown: "—",
-                    purpose: "Recovery, flexibility, injury prevention",
+                    purpose: "Recovery, flexibility, injury prevention before Monday rest.",
                     zones: "Z1", rpe: "2"
                 },
             ]
         },
 
-        // ── PHASE 2: AEROBIC BASE (8 weeks) ────────────────────────
-        "Aerobic Base": {
-            targetHours: 12,
+        // ═══ PHASE 2: 2-2-2 Hybrid Balance (Weeks 5-12) ═══
+        // 2 swims, 2 bikes, 2 runs per week + strength Tue/Fri
+        "2-2-2 Hybrid Balance": {
+            targetHours: 10,
             sessions: [
+                // Monday - REST
                 {
-                    day: 0, sport: "swim", type: "easy", duration: 50, intensity: "easy", tss: 35,
-                    desc: "Swim endurance — continuous freestyle",
+                    day: 0, sport: "rest", type: "recovery", duration: 0, intensity: "easy", tss: 0,
+                    desc: "Rest Day",
+                    warmup: "—", main: "Complete rest — office day. Prioritize sleep & high-protein meals.",
+                    cooldown: "—", purpose: "Recovery from Sunday's long session.",
+                    zones: "N/A", rpe: "0"
+                },
+
+                // Tuesday - Swim Endurance + Strength A
+                {
+                    day: 1, sport: "swim", type: "easy", duration: 50, intensity: "easy", tss: 35,
+                    desc: "Swim Endurance — Continuous Freestyle",
                     warmup: "200m easy + 4×50m drill (catch-up, fingertip drag)",
                     main: "4×100m freestyle @ 2:40/100m, 20s rest | 4×50m kick, 15s rest",
                     cooldown: "100m easy backstroke",
-                    purpose: "Build swim endurance, stroke efficiency",
+                    purpose: "Build swim endurance, stroke efficiency, water confidence.",
                     zones: "Z2", rpe: "4-5"
                 },
-
                 {
-                    day: 1, sport: "run", type: "easy", duration: 50, intensity: "easy", tss: 40,
-                    desc: "Easy aerobic run",
-                    warmup: "10 min walk/easy jog",
-                    main: "35 min Z2 @ 5:50-6:10/km — nasal breathing if possible",
-                    cooldown: "5 min walk + stretch",
-                    purpose: "Aerobic base, mitochondrial density, fat adaptation",
-                    zones: "Z2", rpe: "4-5"
-                },
-
-                {
-                    day: 1, sport: "strength", type: "drill", duration: 55, intensity: "tempo", tss: 35,
-                    desc: "Gym Session 1: Strength / Lower + Core",
+                    day: 1, sport: "strength", type: "drill", duration: 40, intensity: "tempo", tss: 30,
+                    desc: "Strength A: Pull Dominant + Push Accessory",
                     warmup: "5 min dynamic warm-up",
-                    main: "Back Squat 4×6 @RPE7.5 | Walking Lunges 3×12/leg | RDL 3×8 @RPE7.5 | Leg Press 3×12 | Standing Calf Raise 4×15 | Hanging Leg Raise 3×15 | Side Plank 3×30s/side",
-                    cooldown: "5 min static stretch",
-                    purpose: "Progressive strength, posterior chain, injury prevention",
-                    zones: "N/A", rpe: "7-8"
-                },
-
-                {
-                    day: 2, sport: "swim", type: "drill", duration: 50, intensity: "easy", tss: 35,
-                    desc: "Swim drills + build sets",
-                    warmup: "200m easy mixed stroke",
-                    main: "8×50m drill (catch-up, fingertip drag, fist swim) + 4×100m build (easy→moderate)",
-                    cooldown: "100m easy",
-                    purpose: "Technique refinement, stroke efficiency, feel for water",
-                    zones: "Z1-Z2", rpe: "4-5"
-                },
-
-                {
-                    day: 2, sport: "bike", type: "easy", duration: 45, intensity: "easy", tss: 30,
-                    desc: "Easy recovery spin",
-                    warmup: "10 min easy",
-                    main: "30 min Z2, smooth pedaling, single-leg focus drills",
-                    cooldown: "5 min easy spin",
-                    purpose: "Active recovery + bike volume accumulation",
-                    zones: "Z2", rpe: "3-4"
-                },
-
-                {
-                    day: 3, sport: "run", type: "tempo", duration: 55, intensity: "tempo", tss: 55,
-                    desc: "Tempo run — lactate clearance",
-                    warmup: "10 min easy jog + 4× strides",
-                    main: "30 min @ 5:15-5:25/km (RPE 6-7) — comfortably hard",
-                    cooldown: "10 min easy + stretch",
-                    purpose: "Threshold development, lactate clearance rate improvement",
-                    zones: "Z3", rpe: "6-7"
-                },
-
-                {
-                    day: 3, sport: "strength", type: "drill", duration: 55, intensity: "tempo", tss: 35,
-                    desc: "Gym Session 2: Hypertrophy / Upper + Core",
-                    warmup: "5 min dynamic: band pull-aparts, arm circles",
-                    main: "Weighted Pull-ups 3×8 @RPE7 | Flat DB Bench Press 3×10 | Seated Cable Row 3×12 | Arnold Press 3×10 | Face Pulls 3×15 | EZ Bar Curl 3×12 | Overhead Tricep Extension 3×12 | Cable Crunch 3×15",
+                    main: "Weighted Pull-Ups/Lat Pulldowns 3×6-8 | Incline DB Bench Press 3×8-10 | Chest-Supported DB Rows 3×8-10 | DB Lateral Raises 3×10-12 | Superset: Hammer Curls & Overhead Triceps Ext. 2×10-12",
                     cooldown: "5 min stretch",
-                    purpose: "Upper body hypertrophy, swim-specific strength, shoulder health",
-                    zones: "N/A", rpe: "7-8"
+                    purpose: "Maintain V-taper, pulling power for swim stroke improvement.",
+                    zones: "N/A", rpe: "8-9"
                 },
 
-                {
-                    day: 4, sport: "swim", type: "easy", duration: 50, intensity: "easy", tss: 35,
-                    desc: "Swim endurance sets",
-                    warmup: "200m easy",
-                    main: "3×200m freestyle @ 2:35/100m, 20s rest | 200m pull buoy easy",
-                    cooldown: "100m easy backstroke",
-                    purpose: "Distance building, continuous swim adaptation",
-                    zones: "Z2", rpe: "5"
-                },
-
-                {
-                    day: 5, sport: "bike", type: "long", duration: 150, intensity: "easy", tss: 100,
-                    desc: "Long ride — cycling endurance",
-                    warmup: "15 min easy spin",
-                    main: "120 min Z2, practice nutrition every 30 min (gel/bottle), cadence 85-95 rpm",
-                    cooldown: "15 min easy spin + stretch",
-                    purpose: "Cycling endurance, nutrition strategy rehearsal, aerobic adaptation",
-                    zones: "Z2", rpe: "4-5"
-                },
-
-                {
-                    day: 5, sport: "strength", type: "drill", duration: 50, intensity: "tempo", tss: 30,
-                    desc: "Gym Session 3: Power / Full-Body",
-                    warmup: "5 min dynamic warm-up",
-                    main: "Front Squat 3×6 @RPE7.5 | Barbell Row 3×8 | Overhead Press 3×8 | Weighted Chin-ups 3×6 | Lateral Raise 3×15 | Rear Delt Fly 3×15 | Plank 3×60s",
-                    cooldown: "5 min mobility",
-                    purpose: "Full-body power, maintain lean mass, structural balance",
-                    zones: "N/A", rpe: "7-8"
-                },
-
-                {
-                    day: 6, sport: "run", type: "long", duration: 75, intensity: "easy", tss: 60,
-                    desc: "Long run — endurance progression",
-                    warmup: "10 min easy",
-                    main: "60 min @ 5:55-6:10/km — practice mid-run fueling (gel at 40 min)",
-                    cooldown: "5 min walk",
-                    purpose: "Run endurance, fat oxidation, mental toughness",
-                    zones: "Z2", rpe: "5"
-                },
-
-                {
-                    day: 6, sport: "swim", type: "easy", duration: 30, intensity: "easy", tss: 18,
-                    desc: "Easy recovery swim",
-                    warmup: "—",
-                    main: "30 min easy freestyle, focus on long strokes, relaxed breathing",
-                    cooldown: "—",
-                    purpose: "Active recovery + swim volume accumulation",
-                    zones: "Z1", rpe: "3"
-                },
-            ]
-        },
-
-        // ── PHASE 3: BUILD (8 weeks) ───────────────────────────────
-        "Build": {
-            targetHours: 13,
-            sessions: [
-                {
-                    day: 0, sport: "swim", type: "threshold", duration: 60, intensity: "threshold", tss: 55,
-                    desc: "Swim threshold sets",
-                    warmup: "200m easy + 4×50m drill",
-                    main: "6×150m @ 2:20-2:30/100m, 20s rest — push the pace",
-                    cooldown: "200m easy backstroke",
-                    purpose: "Swim lactate tolerance, race-pace development",
-                    zones: "Z3-Z4", rpe: "6-7"
-                },
-
-                {
-                    day: 1, sport: "run", type: "intervals", duration: 55, intensity: "threshold", tss: 60,
-                    desc: "VO2max intervals",
-                    warmup: "15 min easy + 4× strides",
-                    main: "6×800m @ 4:40-4:50/km, 90s jog recovery — hard but controlled",
-                    cooldown: "10 min easy jog",
-                    purpose: "VO2max stimulus, running economy, speed endurance",
-                    zones: "Z4-Z5", rpe: "8"
-                },
-
-                {
-                    day: 1, sport: "strength", type: "drill", duration: 50, intensity: "tempo", tss: 28,
-                    desc: "Gym Session 1: Strength Maintenance / Lower",
-                    warmup: "5 min dynamic warm-up",
-                    main: "Back Squat 3×5 @RPE7 | Split Squat 3×8/leg | Hamstring Curl 3×12 | Calf Raise 3×15 | Hanging Leg Raise 3×12 | Pallof Press 3×10/side",
-                    cooldown: "5 min stretch",
-                    purpose: "Maintain lower body strength, reduce volume to support race training",
-                    zones: "N/A", rpe: "7"
-                },
-
-                {
-                    day: 2, sport: "swim", type: "easy", duration: 55, intensity: "easy", tss: 45,
-                    desc: "Swim endurance — continuous",
-                    warmup: "400m easy mixed",
-                    main: "3×400m @ 2:30-2:40/100m, 30s rest — continuous effort",
-                    cooldown: "200m easy pull buoy",
-                    purpose: "Continuous swim endurance, race-distance confidence",
-                    zones: "Z2", rpe: "5"
-                },
-
+                // Wednesday - Hard: Bike Tempo + Run Tempo
                 {
                     day: 2, sport: "bike", type: "tempo", duration: 60, intensity: "tempo", tss: 55,
-                    desc: "Bike tempo intervals",
+                    desc: "Bike Tempo — Threshold Development",
                     warmup: "15 min easy spin",
                     main: "3×8 min @ RPE 6-7 (threshold effort), 4 min easy between",
                     cooldown: "10 min easy spin",
-                    purpose: "Cycling threshold, power at pace, FTP development",
+                    purpose: "Cycling threshold, power at pace, FTP development.",
                     zones: "Z3-Z4", rpe: "6-7"
                 },
-
                 {
-                    day: 3, sport: "run", type: "easy", duration: 45, intensity: "easy", tss: 30,
-                    desc: "Easy recovery run",
-                    warmup: "5 min walk",
-                    main: "35 min Z2 @ 6:10-6:30/km — truly easy, recovery focus",
-                    cooldown: "5 min walk + foam roll",
-                    purpose: "Recovery, maintain volume without added stress",
-                    zones: "Z2", rpe: "3-4"
+                    day: 2, sport: "run", type: "tempo", duration: 50, intensity: "tempo", tss: 50,
+                    desc: "Tempo Run — Lactate Threshold",
+                    warmup: "10 min easy jog + 4× strides",
+                    main: "25 min @ 5:20-5:30/km (RPE 6-7) — just below threshold",
+                    cooldown: "10 min easy jog + stretch",
+                    purpose: "Lactate threshold development, teach body to clear lactate.",
+                    zones: "Z3", rpe: "6-7"
                 },
 
+                // Thursday - REST
                 {
-                    day: 3, sport: "strength", type: "drill", duration: 45, intensity: "tempo", tss: 22,
-                    desc: "Gym Session 2: Maintenance / Upper",
+                    day: 3, sport: "rest", type: "recovery", duration: 0, intensity: "easy", tss: 0,
+                    desc: "Rest Day",
+                    warmup: "—", main: "Complete rest — office day. Focus on recovery nutrition.",
+                    cooldown: "—", purpose: "Recovery from Wednesday's double-hard session.",
+                    zones: "N/A", rpe: "0"
+                },
+
+                // Friday - Swim Drills + Strength B
+                {
+                    day: 4, sport: "swim", type: "drill", duration: 50, intensity: "easy", tss: 35,
+                    desc: "Swim Drills + Build Sets",
+                    warmup: "200m easy mixed stroke",
+                    main: "8×50m drill (catch-up, fingertip drag, fist swim) + 4×100m build (easy→moderate)",
+                    cooldown: "100m easy",
+                    purpose: "Technique refinement, stroke efficiency, feel for water.",
+                    zones: "Z1-Z2", rpe: "4-5"
+                },
+                {
+                    day: 4, sport: "strength", type: "drill", duration: 40, intensity: "tempo", tss: 30,
+                    desc: "Strength B: Push Dominant + Pull Accessory + Core",
                     warmup: "5 min dynamic warm-up",
-                    main: "Pull-ups 3×6 | DB Bench Press 3×8 | Cable Row 3×10 | Face Pulls 3×12 | DB Curl 2×12 | Tricep Dip 2×10 | Plank 3×45s",
+                    main: "Seated DB Overhead Press 3×6-8 | Neutral Grip Cable Rows 3×8-10 | DB Chest Flyes 2×10-12 | Face Pulls 3×12-15 | Weighted Planks 3×45-60s",
                     cooldown: "5 min stretch",
-                    purpose: "Maintain upper body, reduced volume in build phase",
+                    purpose: "3D shoulder development, rotator cuff bulletproofing, core for tri.",
+                    zones: "N/A", rpe: "8-9"
+                },
+
+                // Saturday - Long Ride
+                {
+                    day: 5, sport: "bike", type: "long", duration: 150, intensity: "easy", tss: 100,
+                    desc: "Long Ride — Cycling Endurance",
+                    warmup: "15 min easy spin",
+                    main: "120 min Z2, practice nutrition every 30 min (gel/bottle), cadence 85-95 rpm",
+                    cooldown: "15 min easy spin + stretch",
+                    purpose: "Cycling endurance, nutrition strategy rehearsal, saddle adaptation.",
+                    zones: "Z2", rpe: "4-5"
+                },
+
+                // Sunday - Hard: Long Run + Mobility
+                {
+                    day: 6, sport: "run", type: "long", duration: 75, intensity: "easy", tss: 60,
+                    desc: "Long Run — Endurance Progression",
+                    warmup: "10 min easy",
+                    main: "60 min @ 5:55-6:10/km — practice mid-run fueling (gel at 40 min)",
+                    cooldown: "5 min walk",
+                    purpose: "Run endurance, fat oxidation, mental toughness training.",
+                    zones: "Z2", rpe: "5"
+                },
+                {
+                    day: 6, sport: "mobility", type: "recovery", duration: 20, intensity: "easy", tss: 5,
+                    desc: "Foam Roll + Mobility",
+                    warmup: "—",
+                    main: "Hip 90/90, ankle dorsiflexion, thoracic rotation, foam roll full body",
+                    cooldown: "—",
+                    purpose: "Recovery before Monday rest, flexibility maintenance.",
+                    zones: "Z1", rpe: "2"
+                },
+            ]
+        },
+
+        // ═══ PHASE 3: Specificity & Heat Acclimation (Weeks 13-17) ═══
+        "Specificity & Heat Acclimation": {
+            targetHours: 10,
+            sessions: [
+                // Monday - REST
+                {
+                    day: 0, sport: "rest", type: "recovery", duration: 0, intensity: "easy", tss: 0,
+                    desc: "Rest Day",
+                    warmup: "—", main: "Complete rest — office day. Begin heat acclimation protocol (warm clothing during day).",
+                    cooldown: "—", purpose: "Recovery. Begin sodium loading practice.",
+                    zones: "N/A", rpe: "0"
+                },
+
+                // Tuesday - Swim Threshold + Strength Maintenance
+                {
+                    day: 1, sport: "swim", type: "threshold", duration: 55, intensity: "threshold", tss: 50,
+                    desc: "Swim Threshold Sets",
+                    warmup: "300m easy + 4×50m drill",
+                    main: "6×150m @ 2:20-2:30/100m, 20s rest — push the pace. Sighting every 8 strokes.",
+                    cooldown: "200m easy backstroke",
+                    purpose: "Swim lactate tolerance, race-pace development, open-water skills.",
+                    zones: "Z3-Z4", rpe: "6-7"
+                },
+                {
+                    day: 1, sport: "strength", type: "easy", duration: 35, intensity: "easy", tss: 18,
+                    desc: "Strength Maintenance: Upper Body",
+                    warmup: "5 min dynamic",
+                    main: "Pull-ups 3×6 | DB Bench 3×8 | Cable Row 3×10 | Face Pulls 3×12 | Plank 3×45s",
+                    cooldown: "5 min stretch",
+                    purpose: "Maintain muscle mass without overtraining. Reduced volume in build phase.",
                     zones: "N/A", rpe: "6-7"
                 },
 
-                {
-                    day: 4, sport: "swim", type: "tempo", duration: 55, intensity: "tempo", tss: 45,
-                    desc: "Race-pace swim practice",
-                    warmup: "300m easy",
-                    main: "8×100m @ race pace (2:25-2:35/100m), 15s rest — simulate race effort",
-                    cooldown: "200m easy",
-                    purpose: "Race-pace familiarity, pacing discipline",
-                    zones: "Z3", rpe: "6"
-                },
-
-                {
-                    day: 5, sport: "bike", type: "brick", duration: 120, intensity: "tempo", tss: 105,
-                    desc: "Brick: Bike → Run transition",
-                    warmup: "10 min easy spin",
-                    main: "75 min ride (last 20 min @ race effort) → T2 (quick change) → 30 min run @ 5:50-6:00/km",
-                    cooldown: "5 min walk",
-                    purpose: "Multi-sport fatigue adaptation, T2 practice, race simulation",
-                    zones: "Z2-Z3", rpe: "6-7"
-                },
-
-                {
-                    day: 5, sport: "strength", type: "drill", duration: 40, intensity: "easy", tss: 18,
-                    desc: "Gym Session 3: Maintenance / Full-Body",
-                    warmup: "5 min dynamic warm-up",
-                    main: "Goblet Squat 3×10 | Push-ups 3×15 | TRX Row 3×12 | Side Plank 3×30s/side | Band Pull-Apart 3×15 | Bird Dog 3×10/side",
-                    cooldown: "5 min mobility",
-                    purpose: "Light maintenance, injury prevention, movement quality",
-                    zones: "N/A", rpe: "5-6"
-                },
-
-                {
-                    day: 6, sport: "run", type: "long", duration: 85, intensity: "easy", tss: 70,
-                    desc: "Long run with fueling practice",
-                    warmup: "10 min easy",
-                    main: "70 min @ 5:50-6:05/km, gel at 35 min and 60 min — practice race nutrition",
-                    cooldown: "5 min walk",
-                    purpose: "Endurance, nutrition rehearsal, mental toughness",
-                    zones: "Z2", rpe: "5-6"
-                },
-
-                {
-                    day: 6, sport: "swim", type: "easy", duration: 30, intensity: "easy", tss: 18,
-                    desc: "Easy recovery swim",
-                    warmup: "—",
-                    main: "30 min easy freestyle, long strokes, relaxed",
-                    cooldown: "—",
-                    purpose: "Active recovery, total swim volume",
-                    zones: "Z1", rpe: "3"
-                },
-            ]
-        },
-
-        // ── PHASE 4: RACE-SPECIFIC (6 weeks) ───────────────────────
-        "Race-Specific": {
-            targetHours: 13,
-            sessions: [
-                {
-                    day: 0, sport: "swim", type: "tempo", duration: 55, intensity: "tempo", tss: 50,
-                    desc: "Race-pace swim sets — extended",
-                    warmup: "300m easy + 4×50m drill",
-                    main: "3×600m @ race pace (2:25-2:35/100m), 30s rest",
-                    cooldown: "200m easy",
-                    purpose: "Race-pace endurance, swim confidence at distance",
-                    zones: "Z3", rpe: "6"
-                },
-
-                {
-                    day: 1, sport: "run", type: "tempo", duration: 60, intensity: "tempo", tss: 60,
-                    desc: "Race-pace sustained tempo",
-                    warmup: "10 min easy + strides",
-                    main: "40 min @ 5:45-6:00/km (projected race effort) — practice negative split",
-                    cooldown: "10 min easy",
-                    purpose: "Race-pace familiarity, pacing strategy, mental rehearsal",
-                    zones: "Z3", rpe: "6-7"
-                },
-
-                {
-                    day: 1, sport: "strength", type: "easy", duration: 35, intensity: "easy", tss: 15,
-                    desc: "Gym Session 1: Light Maintenance",
-                    warmup: "5 min dynamic",
-                    main: "Bodyweight Squat 3×15 | Push-ups 3×12 | Band Row 3×15 | Plank 3×45s | Calf Raise 3×20",
-                    cooldown: "5 min mobility",
-                    purpose: "Maintenance only — preserve muscle, prevent atrophy",
-                    zones: "N/A", rpe: "4-5"
-                },
-
+                // Wednesday - Hard: Bike Race-Pace + Run Intervals
                 {
                     day: 2, sport: "bike", type: "tempo", duration: 75, intensity: "tempo", tss: 70,
-                    desc: "Bike race-pace simulation",
+                    desc: "Bike Race-Pace Simulation",
                     warmup: "15 min easy spin",
-                    main: "45 min @ race effort with nutrition practice every 20 min",
+                    main: "45 min @ race effort with nutrition practice every 20 min. Practice sodium intake (500-1500mg/hr).",
                     cooldown: "15 min easy spin",
-                    purpose: "Race simulation, nutrition timing, aerobar position endurance",
+                    purpose: "Race simulation, nutrition timing, aerobar position endurance for Goa heat.",
                     zones: "Z3", rpe: "6-7"
                 },
-
                 {
-                    day: 2, sport: "swim", type: "easy", duration: 40, intensity: "easy", tss: 30,
-                    desc: "Open-water simulation — sighting drills",
+                    day: 2, sport: "run", type: "intervals", duration: 55, intensity: "threshold", tss: 60,
+                    desc: "VO2max Intervals",
+                    warmup: "15 min easy + 4× strides",
+                    main: "6×800m @ 4:40-4:50/km, 90s jog recovery — hard but controlled",
+                    cooldown: "10 min easy jog",
+                    purpose: "VO2max stimulus, running economy, speed endurance.",
+                    zones: "Z4-Z5", rpe: "8"
+                },
+
+                // Thursday - REST
+                {
+                    day: 3, sport: "rest", type: "recovery", duration: 0, intensity: "easy", tss: 0,
+                    desc: "Rest Day",
+                    warmup: "—", main: "Complete rest — office day. Analyze previous session data.",
+                    cooldown: "—", purpose: "Recovery from Wednesday's race-pace double.",
+                    zones: "N/A", rpe: "0"
+                },
+
+                // Friday - Swim Open-Water Sim + Light Strength
+                {
+                    day: 4, sport: "swim", type: "tempo", duration: 50, intensity: "tempo", tss: 45,
+                    desc: "Open-Water Simulation — Sighting Drills",
                     warmup: "200m easy",
-                    main: "8×100m with head-up sighting every 8 strokes + 4×50m draft practice",
+                    main: "8×100m with head-up sighting every 8 strokes + 4×50m draft practice. Practice race-pace 2:25-2:35/100m.",
                     cooldown: "100m easy",
-                    purpose: "Open-water preparation, race-day skills",
-                    zones: "Z2", rpe: "5"
+                    purpose: "Open-water preparation, race-day skills for Miramar Beach swim.",
+                    zones: "Z2-Z3", rpe: "5-6"
                 },
-
                 {
-                    day: 3, sport: "run", type: "easy", duration: 40, intensity: "easy", tss: 25,
-                    desc: "Easy recovery run",
-                    warmup: "5 min walk",
-                    main: "30 min Z2 easy — shake out legs",
-                    cooldown: "5 min walk + foam roll",
-                    purpose: "Active recovery between hard sessions",
-                    zones: "Z2", rpe: "3-4"
-                },
-
-                {
-                    day: 3, sport: "strength", type: "easy", duration: 30, intensity: "easy", tss: 12,
-                    desc: "Gym Session 2: Mobility + Core",
+                    day: 4, sport: "strength", type: "easy", duration: 30, intensity: "easy", tss: 12,
+                    desc: "Strength: Light Maintenance + Core",
                     warmup: "5 min dynamic",
-                    main: "Goblet Squat 2×10 | Band Pull-Apart 3×15 | Plank 3×45s | Side Plank 3×30s | Bird Dog 3×10/side",
+                    main: "Band pull-aparts 3×15 | Goblet Squat 2×10 | Plank 3×45s | Side Plank 3×30s | Bird Dog 3×10/side",
                     cooldown: "5 min stretch",
-                    purpose: "Core stability, movement maintenance, injury prevention",
+                    purpose: "Core stability, movement maintenance, injury prevention only.",
                     zones: "N/A", rpe: "4"
                 },
 
+                // Saturday - Brick Session
                 {
-                    day: 4, sport: "swim", type: "easy", duration: 50, intensity: "easy", tss: 45,
-                    desc: "Swim full-distance simulation",
-                    warmup: "200m easy",
-                    main: "1900m continuous at race pace — the full 70.3 swim distance",
-                    cooldown: "100m easy",
-                    purpose: "Race distance confidence, pacing strategy",
-                    zones: "Z2-Z3", rpe: "5-6"
-                },
-
-                {
-                    day: 5, sport: "bike", type: "brick", duration: 280, intensity: "tempo", tss: 210,
-                    desc: "Full race simulation brick",
-                    warmup: "15 min easy spin",
-                    main: "90 km ride @ race pace → T2 → 15-18 km run @ race effort — FULL nutrition plan",
+                    day: 5, sport: "bike", type: "brick", duration: 180, intensity: "tempo", tss: 150,
+                    desc: "Brick: Bike → Run Transition",
+                    warmup: "10 min easy spin",
+                    main: "75 min ride (last 20 min @ race effort) → T2 quick change → 30 min run @ 5:50-6:00/km. Full nutrition plan rehearsal.",
                     cooldown: "5 min walk",
-                    purpose: "Complete race simulation, nutritional dry run, transition practice",
+                    purpose: "Multi-sport fatigue adaptation, T2 practice, race simulation, GI testing.",
                     zones: "Z2-Z3", rpe: "6-7"
                 },
 
+                // Sunday - Long Run + Recovery
                 {
-                    day: 5, sport: "strength", type: "easy", duration: 25, intensity: "easy", tss: 10,
-                    desc: "Gym Session 3: Very Light",
-                    warmup: "5 min dynamic",
-                    main: "Band work: pull-aparts, monster walks | Core: dead bug 3×10, pallof press 3×10/side",
-                    cooldown: "5 min stretch",
-                    purpose: "Light activation, injury prevention only",
-                    zones: "N/A", rpe: "3-4"
+                    day: 6, sport: "run", type: "long", duration: 85, intensity: "easy", tss: 70,
+                    desc: "Long Run with Race Fueling",
+                    warmup: "10 min easy",
+                    main: "70 min @ 5:50-6:05/km, gel at 35 min and 60 min — practice full race nutrition",
+                    cooldown: "5 min walk",
+                    purpose: "Endurance, nutrition rehearsal for Goa heat, mental toughness.",
+                    zones: "Z2", rpe: "5-6"
                 },
-
                 {
-                    day: 6, sport: "mobility", type: "recovery", duration: 30, intensity: "easy", tss: 5,
-                    desc: "Recovery + mobility session",
+                    day: 6, sport: "mobility", type: "recovery", duration: 25, intensity: "easy", tss: 5,
+                    desc: "Recovery + Mobility Session",
                     warmup: "—",
-                    main: "Foam roll full body, 90/90 hip stretches, ankle mobility, thoracic rotation",
+                    main: "Foam roll full body, 90/90 hip stretches, ankle mobility, thoracic rotation, cold immersion if available",
                     cooldown: "—",
-                    purpose: "Recovery from race simulation, prepare for next week",
+                    purpose: "Recovery from race simulation week, prepare for next week.",
                     zones: "Z1", rpe: "2"
-                },
-
-                {
-                    day: 6, sport: "swim", type: "easy", duration: 30, intensity: "easy", tss: 15,
-                    desc: "Easy recovery swim",
-                    warmup: "—",
-                    main: "30 min easy, relaxed strokes, breathing focus",
-                    cooldown: "—",
-                    purpose: "Active recovery, maintain water feel",
-                    zones: "Z1", rpe: "3"
                 },
             ]
         },
 
-        // ── PHASE 5: TAPER (2 weeks) ──────────────────────────────
-        "Taper": {
-            targetHours: 7,
+        // ═══ PHASE 4: Peak & Taper (Weeks 18-20) ═══
+        "Peak & Taper": {
+            targetHours: 6,
             sessions: [
+                // Monday - REST
                 {
-                    day: 0, sport: "swim", type: "easy", duration: 30, intensity: "easy", tss: 20,
-                    desc: "Short race-pace intervals",
-                    warmup: "200m easy",
-                    main: "4×100m @ race pace, 30s rest — crisp, fast strokes",
-                    cooldown: "100m easy",
-                    purpose: "Maintain feel for water, neuromuscular sharpness",
-                    zones: "Z2-Z3", rpe: "5"
+                    day: 0, sport: "rest", type: "recovery", duration: 0, intensity: "easy", tss: 0,
+                    desc: "Rest Day",
+                    warmup: "—", main: "Complete rest. Mental preparation, race logistics planning.",
+                    cooldown: "—", purpose: "Full recovery. Glycogen supercompensation begins.",
+                    zones: "N/A", rpe: "0"
                 },
 
+                // Tuesday - Easy Swim + Light Strength
                 {
-                    day: 1, sport: "run", type: "easy", duration: 35, intensity: "easy", tss: 25,
-                    desc: "Easy run with strides",
+                    day: 1, sport: "swim", type: "easy", duration: 30, intensity: "easy", tss: 20,
+                    desc: "Short Race-Pace Intervals",
+                    warmup: "200m easy",
+                    main: "4×100m @ race pace, 30s rest — crisp, fast strokes. Focus on feel.",
+                    cooldown: "100m easy",
+                    purpose: "Maintain water feel, neuromuscular sharpness without fatigue.",
+                    zones: "Z2-Z3", rpe: "5"
+                },
+                {
+                    day: 1, sport: "strength", type: "easy", duration: 25, intensity: "easy", tss: 10,
+                    desc: "Strength: Very Light Maintenance",
+                    warmup: "5 min dynamic",
+                    main: "Band pull-aparts 2×15 | Push-ups 2×10 | Plank 2×30s | Bird Dog 2×8/side",
+                    cooldown: "5 min stretch + mobility",
+                    purpose: "Prevent detraining, keep neural pathways active. No fatigue.",
+                    zones: "N/A", rpe: "3-4"
+                },
+
+                // Wednesday - Easy Bike with Openers
+                {
+                    day: 2, sport: "bike", type: "easy", duration: 45, intensity: "easy", tss: 30,
+                    desc: "Easy Spin with Openers",
+                    warmup: "15 min easy",
+                    main: "20 min easy + 3×2 min @ race effort — feel the power, stay sharp",
+                    cooldown: "10 min easy",
+                    purpose: "Maintain cycling feel, race-pace neuromuscular recall.",
+                    zones: "Z2", rpe: "4"
+                },
+
+                // Thursday - REST
+                {
+                    day: 3, sport: "rest", type: "recovery", duration: 0, intensity: "easy", tss: 0,
+                    desc: "Rest Day",
+                    warmup: "—", main: "Complete rest. Race week mental preparation.",
+                    cooldown: "—", purpose: "Full recovery. Carb loading protocol.",
+                    zones: "N/A", rpe: "0"
+                },
+
+                // Friday - Easy Run with Strides
+                {
+                    day: 4, sport: "run", type: "easy", duration: 30, intensity: "easy", tss: 18,
+                    desc: "Easy Run with Strides",
                     warmup: "10 min easy",
                     main: "15 min easy + 4×30s strides (fast but relaxed)",
                     cooldown: "5 min walk",
-                    purpose: "Maintain leg turnover, neuromuscular activation",
+                    purpose: "Keep legs loose, neuromuscular activation, mental calm.",
                     zones: "Z2", rpe: "4"
                 },
 
-                {
-                    day: 2, sport: "bike", type: "easy", duration: 45, intensity: "easy", tss: 30,
-                    desc: "Easy spin with openers",
-                    warmup: "15 min easy",
-                    main: "20 min easy + 3×2 min @ race effort — feel the power",
-                    cooldown: "10 min easy",
-                    purpose: "Maintain cycling feel, race-pace recall",
-                    zones: "Z2", rpe: "4"
-                },
-
-                {
-                    day: 3, sport: "swim", type: "easy", duration: 25, intensity: "easy", tss: 15,
-                    desc: "Easy swim — relax",
-                    warmup: "100m easy",
-                    main: "400m relaxed freestyle, focus on technique",
-                    cooldown: "—",
-                    purpose: "Water comfort, race-week confidence",
-                    zones: "Z1", rpe: "3"
-                },
-
-                {
-                    day: 4, sport: "run", type: "easy", duration: 25, intensity: "easy", tss: 15,
-                    desc: "Short easy shakeout",
-                    warmup: "5 min walk",
-                    main: "15 min easy jog + 2× strides",
-                    cooldown: "5 min walk",
-                    purpose: "Keep legs loose, mental preparation",
-                    zones: "Z2", rpe: "3"
-                },
-
+                // Saturday - Mobility + Visualization
                 {
                     day: 5, sport: "mobility", type: "recovery", duration: 20, intensity: "easy", tss: 5,
-                    desc: "Full body mobility + visualization",
+                    desc: "Mobility + Race Visualization",
                     warmup: "—",
-                    main: "Foam roll, gentle stretches, 10 min race visualization (swim start → finish line)",
+                    main: "Foam roll, gentle stretches, 10 min race visualization (Miramar Beach swim → bike course → flat run → finish)",
                     cooldown: "—",
-                    purpose: "Recovery + mental race preparation",
+                    purpose: "Recovery + mental race preparation. Visualize every transition.",
                     zones: "Z1", rpe: "2"
                 },
 
+                // Sunday (Week 20 only) - RACE DAY
                 {
-                    day: 6, sport: "rest", type: "recovery", duration: 0, intensity: "easy", tss: 0,
-                    desc: "Race Day: IRONMAN 70.3 GOA",
-                    warmup: "Race morning routine: light jog, dynamic stretch",
-                    main: "1.9km SWIM → 90km BIKE → 21.1km RUN — Execute the plan!",
+                    day: 6, sport: "race", type: "recovery", duration: 0, intensity: "easy", tss: 0,
+                    desc: "RACE DAY: IRONMAN 70.3 GOA",
+                    warmup: "Race morning: light jog, dynamic stretch, practice swim strokes",
+                    main: "1.9km SWIM (Miramar Beach) → 90km BIKE (525m elevation) → 21.1km RUN — Execute the plan!",
                     cooldown: "Celebrate. You're an Ironman.",
-                    purpose: "RACE DAY",
+                    purpose: "RACE DAY — Trust the 20 weeks of preparation.",
                     zones: "All", rpe: "10"
                 },
             ]
@@ -689,71 +551,138 @@ const TrainingData = (() => {
 
     // ── Workout Library (drag-and-drop templates) ────────────────
     const WORKOUT_LIBRARY = [
-        {
-            id: "lib-swim-easy", sport: "swim", type: "easy", duration: 30, intensity: "easy",
-            desc: "Easy Swim", tss: 20, main: "Relaxed freestyle, technique focus"
-        },
-        {
-            id: "lib-swim-drill", sport: "swim", type: "drill", duration: 45, intensity: "easy",
-            desc: "Swim Drills", tss: 25, main: "Catch-up, fingertip drag, kick drills"
-        },
-        {
-            id: "lib-swim-threshold", sport: "swim", type: "threshold", duration: 55, intensity: "threshold",
-            desc: "Swim Threshold", tss: 50, main: "6×150m @ threshold pace"
-        },
-        {
-            id: "lib-bike-easy", sport: "bike", type: "easy", duration: 45, intensity: "easy",
-            desc: "Easy Spin", tss: 30, main: "Z2 spinning, smooth pedaling"
-        },
-        {
-            id: "lib-bike-long", sport: "bike", type: "long", duration: 120, intensity: "easy",
-            desc: "Long Ride", tss: 90, main: "Z2 endurance ride with nutrition"
-        },
-        {
-            id: "lib-bike-tempo", sport: "bike", type: "tempo", duration: 60, intensity: "tempo",
-            desc: "Bike Tempo", tss: 55, main: "3×8min tempo intervals"
-        },
-        {
-            id: "lib-bike-brick", sport: "bike", type: "brick", duration: 110, intensity: "tempo",
-            desc: "Brick Session", tss: 100, main: "Bike → Run transition"
-        },
-        {
-            id: "lib-run-easy", sport: "run", type: "easy", duration: 40, intensity: "easy",
-            desc: "Easy Run", tss: 30, main: "Z2 conversational pace"
-        },
-        {
-            id: "lib-run-long", sport: "run", type: "long", duration: 75, intensity: "easy",
-            desc: "Long Run", tss: 60, main: "Endurance run with mid-run fuel"
-        },
-        {
-            id: "lib-run-tempo", sport: "run", type: "tempo", duration: 50, intensity: "tempo",
-            desc: "Tempo Run", tss: 50, main: "25-30min at threshold pace"
-        },
-        {
-            id: "lib-run-intervals", sport: "run", type: "intervals", duration: 50, intensity: "threshold",
-            desc: "VO2max Intervals", tss: 60, main: "6×800m hard, 90s jog rest"
-        },
-        {
-            id: "lib-strength-lower", sport: "strength", type: "drill", duration: 50, intensity: "tempo",
-            desc: "Strength: Lower Body", tss: 30, main: "Squat, RDL, Split Squat, Core"
-        },
-        {
-            id: "lib-strength-upper", sport: "strength", type: "drill", duration: 50, intensity: "tempo",
-            desc: "Strength: Upper Body", tss: 30, main: "Pull-ups, Bench, Rows, Core"
-        },
-        {
-            id: "lib-strength-full", sport: "strength", type: "drill", duration: 45, intensity: "tempo",
-            desc: "Strength: Full Body", tss: 25, main: "Deadlift, Press, Row, Core"
-        },
-        {
-            id: "lib-mobility", sport: "mobility", type: "recovery", duration: 20, intensity: "easy",
-            desc: "Mobility & Foam Roll", tss: 5, main: "Full body foam roll, stretching"
-        },
-        {
-            id: "lib-rest", sport: "rest", type: "recovery", duration: 0, intensity: "easy",
-            desc: "Rest Day", tss: 0, main: "Complete rest — sleep, hydrate, recover"
-        },
+        { id: "lib-swim-easy", sport: "swim", type: "easy", duration: 30, intensity: "easy", desc: "Easy Swim", tss: 20, main: "Relaxed freestyle, technique focus" },
+        { id: "lib-swim-drill", sport: "swim", type: "drill", duration: 45, intensity: "easy", desc: "Swim Drills", tss: 25, main: "Catch-up, fingertip drag, kick drills" },
+        { id: "lib-swim-threshold", sport: "swim", type: "threshold", duration: 55, intensity: "threshold", desc: "Swim Threshold", tss: 50, main: "6×150m @ threshold pace" },
+        { id: "lib-bike-easy", sport: "bike", type: "easy", duration: 45, intensity: "easy", desc: "Easy Spin", tss: 30, main: "Z2 spinning, smooth pedaling" },
+        { id: "lib-bike-long", sport: "bike", type: "long", duration: 120, intensity: "easy", desc: "Long Ride", tss: 90, main: "Z2 endurance ride with nutrition" },
+        { id: "lib-bike-tempo", sport: "bike", type: "tempo", duration: 60, intensity: "tempo", desc: "Bike Tempo", tss: 55, main: "3×8min tempo intervals" },
+        { id: "lib-bike-brick", sport: "bike", type: "brick", duration: 110, intensity: "tempo", desc: "Brick Session", tss: 100, main: "Bike → Run transition" },
+        { id: "lib-run-easy", sport: "run", type: "easy", duration: 40, intensity: "easy", desc: "Easy Run", tss: 30, main: "Z2 conversational pace" },
+        { id: "lib-run-long", sport: "run", type: "long", duration: 75, intensity: "easy", desc: "Long Run", tss: 60, main: "Endurance run with mid-run fuel" },
+        { id: "lib-run-tempo", sport: "run", type: "tempo", duration: 50, intensity: "tempo", desc: "Tempo Run", tss: 50, main: "25-30min at threshold pace" },
+        { id: "lib-run-intervals", sport: "run", type: "intervals", duration: 50, intensity: "threshold", desc: "VO2max Intervals", tss: 60, main: "6×800m hard, 90s jog rest" },
+        { id: "lib-strength-pull", sport: "strength", type: "drill", duration: 40, intensity: "tempo", desc: "Strength A: Pull Dominant", tss: 30, main: "Pull-ups, Incline Press, Rows, Laterals" },
+        { id: "lib-strength-push", sport: "strength", type: "drill", duration: 40, intensity: "tempo", desc: "Strength B: Push Dominant", tss: 30, main: "OHP, Cable Rows, Flyes, Face Pulls, Planks" },
+        { id: "lib-mobility", sport: "mobility", type: "recovery", duration: 20, intensity: "easy", desc: "Mobility & Foam Roll", tss: 5, main: "Full body foam roll, stretching" },
+        { id: "lib-rest", sport: "rest", type: "recovery", duration: 0, intensity: "easy", desc: "Rest Day", tss: 0, main: "Complete rest" },
     ];
+
+    // ── Nutrition Data ──────────────────────────────────────────
+    const NUTRITION = {
+        dailyTargets: {
+            calories: "2800-3200 kcal (training days), 2200-2500 kcal (rest days)",
+            protein: "1.7-2.2 g/kg bodyweight = 99-128g daily",
+            carbs: "4-7 g/kg bodyweight = 232-406g daily",
+            fat: "0.8-1.2 g/kg = 46-70g daily",
+            water: "3-4 liters daily, more on training days",
+        },
+        preTraining: {
+            twoToThreeHoursBefore: {
+                title: "2-3 Hours Before Training",
+                items: [
+                    "Complex carbs: oatmeal, whole grain toast, brown rice",
+                    "Moderate protein: eggs, yogurt, lean chicken",
+                    "Low fat, low fiber to prevent GI distress",
+                    "Example: 2 eggs + 2 toast + banana + honey",
+                    "300-500 kcal, 60-80% carbs",
+                ],
+            },
+            thirtyMinBefore: {
+                title: "30 Minutes Before",
+                items: [
+                    "Simple carbs: banana, dates, energy bar",
+                    "100-200 kcal max",
+                    "250-500ml water with electrolytes",
+                    "NEVER train fasted (per protocol)",
+                ],
+            },
+        },
+        duringTraining: {
+            underSixtyMin: "Water only (250-500ml/hr)",
+            sixtyToNinetyMin: "Water + electrolytes, optional 30g carbs",
+            overNinetyMin: "60-90g carbohydrates per hour (gels, sports drink, dates)",
+            sodium: "500-1500mg sodium per hour (critical for Goa heat)",
+            hydration: "500-750ml fluid per hour, more in heat",
+        },
+        postTraining: {
+            withinThirtyMin: {
+                title: "Within 30 Minutes (Golden Window)",
+                items: [
+                    "3:1 or 4:1 carb-to-protein ratio",
+                    "Example: Protein shake + banana + honey",
+                    "40-60g carbs + 15-25g protein",
+                    "Restores glycogen, initiates mTOR muscle repair",
+                ],
+            },
+            withinTwoHours: {
+                title: "Within 2 Hours — Full Meal",
+                items: [
+                    "Complete meal with all macros",
+                    "Lean protein: chicken, fish, paneer, eggs",
+                    "Complex carbs: rice, roti, sweet potato",
+                    "Vegetables for micronutrients",
+                    "Example: Chicken breast + rice + dal + sabzi",
+                ],
+            },
+        },
+        raceDayPlan: {
+            morning: "Race morning (3hrs before): Oatmeal + banana + honey + coffee. 500ml water with electrolytes.",
+            swim: "Nothing during 1.9km swim. Hydrate in T1 if needed.",
+            bike: "60-90g carbs/hr: gels every 20-30 min + sports drink. 500-1500mg sodium/hr. 500-750ml fluid/hr.",
+            run: "40-60g carbs/hr: cola + gels at aid stations. Continue sodium intake. Small water sips.",
+        },
+        supplements: [
+            { name: "Whey Protein", dose: "25-30g post-workout", purpose: "Muscle preservation, mTOR activation" },
+            { name: "Creatine Monohydrate", dose: "3-5g daily", purpose: "Power output, muscle cell hydration" },
+            { name: "Electrolyte Mix", dose: "During sessions >60min", purpose: "Sodium, potassium, magnesium replacement" },
+            { name: "Caffeine", dose: "3-6mg/kg before key sessions", purpose: "Performance enhancement, fat oxidation" },
+            { name: "Vitamin D3", dose: "2000-4000 IU daily", purpose: "Bone health, immune function" },
+            { name: "Omega-3 Fish Oil", dose: "1-2g EPA+DHA daily", purpose: "Anti-inflammatory, joint health" },
+        ],
+        faq: [
+            {
+                q: "Should I train fasted for fat adaptation?",
+                a: "No. The protocol strictly prohibits fasted training. While fasted training can enhance fat oxidation, for a beginner-intermediate triathlete, the performance cost and muscle catabolism risk outweigh the benefits. Always consume at least simple carbs before training."
+            },
+            {
+                q: "How much protein to prevent muscle loss during endurance training?",
+                a: "1.7-2.2g per kg bodyweight daily. For a 58kg athlete, that's 99-128g protein. Distribute evenly across 4-5 meals. Prioritize leucine-rich sources: whey, eggs, chicken, fish. The endurance training volume creates a catabolic environment — protein intake is your primary defense against muscle loss."
+            },
+            {
+                q: "What's the 3:1 carb-to-protein ratio post-workout?",
+                a: "After endurance training, consume 3 parts carbohydrates to 1 part protein. Example: 60g carbs + 20g protein. This ratio optimizes glycogen resynthesis (you burned through your stores) while providing amino acids for the mTOR pathway that repairs damaged muscle fibers. A banana + protein shake is the simplest execution."
+            },
+            {
+                q: "How should I fuel on rest days (Mon/Thu)?",
+                a: "Rest days are NOT low-calorie days. Maintain caloric intake at maintenance or slight surplus. Keep protein high (1.7-2.2g/kg) to maximize the repair window. You can slightly reduce carbs since you're not training, but don't cut calories aggressively — your body is rebuilding."
+            },
+            {
+                q: "Why 60-90g carbs per hour during long sessions?",
+                a: "Your body can oxidize ~60g/hr from a single carb source (glucose). By using dual-source carbs (glucose + fructose), absorption increases to 90g/hr. For sessions over 90 minutes, this prevents bonking (glycogen depletion). Practice this in training to train your gut — GI distress on race day is the #1 DNF cause."
+            },
+            {
+                q: "How do I prepare for Goa's heat and humidity?",
+                a: "Goa race conditions involve extreme heat. Start heat acclimation 4-6 weeks before (Phase 3): train in warm conditions, wear extra layers. Increase sodium intake to 500-1500mg/hr during training. Pre-load with 1000mg sodium 2 hours before long sessions. Practice your full nutrition plan in hot conditions."
+            },
+            {
+                q: "What should I eat the night before race day?",
+                a: "Carb-loading dinner: familiar foods, high carb, moderate protein, LOW fiber and fat. Rice/pasta + chicken + simple sauce. Avoid spicy food, dairy, high-fiber vegetables, alcohol. Eat early (6-7 PM). Hydrate with electrolytes but don't overdrink. This is NOT the time to try new foods."
+            },
+            {
+                q: "Do I need supplements or can I get everything from food?",
+                a: "Food should be your primary nutrition source. However, for a triathlete training 10 hrs/week: Whey protein makes hitting 100g+ protein practical. Creatine (3-5g/day) has strong evidence for power output. Electrolyte mixes are essential for sessions >60 min. Caffeine is a proven ergogenic aid. Vitamin D and Omega-3 support recovery. Everything else is optional."
+            },
+            {
+                q: "How do I know if I'm eating enough?",
+                a: "Track these red flags for underfueling: (1) Resting heart rate elevated 5-7 bpm for 3+ days, (2) Inability to hit prescribed workout intensities, (3) Poor sleep quality, (4) Persistent muscle soreness beyond 48 hrs, (5) Getting sick frequently, (6) Mood changes/irritability. If these appear, increase calories by 300-500/day."
+            },
+            {
+                q: "What about intermittent fasting during training?",
+                a: "Not recommended. Your 10-hour training schedule requires consistent fueling across the day. The post-workout nutrition window is critical for glycogen restoration and muscle repair. IF would compromise recovery quality and training adaptation. Eat 4-5 balanced meals distributed throughout the day."
+            },
+        ],
+    };
 
     // ── Plan Generation ──────────────────────────────────────────
     function generatePlan(startDate = PLAN_START) {
@@ -763,12 +692,13 @@ const TrainingData = (() => {
         let globalId = 1;
 
         for (const phase of PHASES) {
-            const template = WEEKLY_TEMPLATES[phase.name] || WEEKLY_TEMPLATES["Aerobic Base"];
+            const template = WEEKLY_TEMPLATES[phase.name];
+            if (!template) continue;
 
             for (let w = 0; w < phase.weeks; w++) {
-                const isDeload = (w + 1) % 4 === 0 && phase.name !== "Taper";
+                const isDeload = (w + 1) % 4 === 0 && phase.name !== "Peak & Taper";
                 const weekStart = new Date(currentDate);
-                const progressionFactor = Math.min(1.0 + (w / phase.weeks) * 0.15, 1.15);
+                const progressionFactor = Math.min(1.0 + (w / phase.weeks) * 0.12, 1.12);
 
                 for (const session of template.sessions) {
                     const sessionDate = new Date(weekStart);
@@ -780,7 +710,7 @@ const TrainingData = (() => {
                     if (isDeload) {
                         dur = Math.round(dur * 0.6);
                         tss = Math.round(tss * 0.5);
-                    } else {
+                    } else if (session.sport !== "rest" && session.sport !== "race") {
                         dur = Math.round(dur * progressionFactor);
                         tss = Math.round(tss * progressionFactor);
                     }
@@ -822,40 +752,27 @@ const TrainingData = (() => {
         return workouts;
     }
 
-    // ── Sample Completion Data (for demo) ────────────────────────
+    // ── Sample Completion Data ───────────────────────────────────
+    // Week 1: Mon rest, Tue completed, Wed completed, Thu+ planned
     function addSampleCompletionData(workouts) {
         const today = new Date();
         const todayStr = formatDate(today);
-        let seed = 42;
-        const rng = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
 
         for (const w of workouts) {
-            if (w.date <= todayStr && w.sport !== "rest") {
-                const roll = rng();
-                if (roll < 0.80) {
-                    w.status = "completed";
-                    w.actualDuration = Math.round(w.duration * (0.85 + rng() * 0.25));
-                    w.rpeActual = Math.floor(4 + rng() * 5);
-                    w.tssActual = Math.round(w.tssPlanned * (0.8 + rng() * 0.35));
-                    if (w.sport === "run") w.actualHR = Math.floor(135 + rng() * 30);
-                    else if (w.sport === "bike") w.actualHR = Math.floor(130 + rng() * 25);
-                    else if (w.sport === "swim") w.actualHR = Math.floor(125 + rng() * 30);
-                } else if (roll < 0.90) {
-                    w.status = "modified";
-                    w.actualDuration = Math.round(w.duration * (0.5 + rng() * 0.3));
-                    w.rpeActual = Math.floor(3 + rng() * 4);
-                    w.tssActual = Math.round(w.tssPlanned * (0.5 + rng() * 0.3));
-                    w.notes = "Modified due to fatigue/time constraint";
-                } else {
-                    w.status = "skipped";
-                    w.notes = "Skipped — recovery priority";
-                }
+            if (w.date <= todayStr && w.sport !== "rest" && w.sport !== "race") {
+                w.status = "completed";
+                w.actualDuration = Math.round(w.duration * (0.9 + Math.random() * 0.15));
+                w.rpeActual = Math.floor(4 + Math.random() * 4);
+                w.tssActual = Math.round(w.tssPlanned * (0.85 + Math.random() * 0.25));
+                if (w.sport === "run") w.actualHR = Math.floor(135 + Math.random() * 25);
+                else if (w.sport === "bike") w.actualHR = Math.floor(130 + Math.random() * 20);
+                else if (w.sport === "swim") w.actualHR = Math.floor(125 + Math.random() * 25);
             }
         }
         return workouts;
     }
 
-    // ── Analytics: CTL / ATL / TSB ───────────────────────────────
+    // ── Metrics: CTL / ATL / TSB ─────────────────────────────────
     const CTL_CONSTANT = 42;
     const ATL_CONSTANT = 7;
 
@@ -880,14 +797,13 @@ const TrainingData = (() => {
             ctl = ctl + (tss - ctl) / CTL_CONSTANT;
             atl = atl + (tss - atl) / ATL_CONSTANT;
             const tsb = ctl - atl;
-
             metrics.push({ date: dateStr, ctl: Math.round(ctl * 10) / 10, atl: Math.round(atl * 10) / 10, tsb: Math.round(tsb * 10) / 10, tss });
         }
 
         return metrics;
     }
 
-    // ── Weekly Volume Calculation ────────────────────────────────
+    // ── Weekly Volume ────────────────────────────────────────────
     function calculateWeeklyVolume(workouts) {
         const weeks = {};
         for (const w of workouts) {
@@ -906,7 +822,7 @@ const TrainingData = (() => {
     // ── Compliance ───────────────────────────────────────────────
     function calculateCompliance(workouts) {
         const today = formatDate(new Date());
-        const past = workouts.filter(w => w.date <= today && w.sport !== "rest");
+        const past = workouts.filter(w => w.date <= today && w.sport !== "rest" && w.sport !== "race");
         const completed = past.filter(w => w.status === "completed" || w.status === "modified");
         const overall = past.length > 0 ? (completed.length / past.length * 100) : 0;
 
@@ -918,6 +834,77 @@ const TrainingData = (() => {
         }
 
         return { overall: Math.round(overall), bySport };
+    }
+
+    // ── Dashboard Analytics ─────────────────────────────────────
+    function calculateDashboardStats(workouts) {
+        const today = formatDate(new Date());
+        const all = workouts.filter(w => w.sport !== "rest" && w.sport !== "race");
+        const past = all.filter(w => w.date <= today);
+        const completed = past.filter(w => w.status === "completed" || w.status === "modified");
+        const skipped = past.filter(w => w.status === "skipped");
+        const planned = all.filter(w => w.date > today);
+
+        // Total hours trained
+        let totalMinutes = 0;
+        completed.forEach(w => totalMinutes += (w.actualDuration || w.duration));
+
+        // Mileage estimates based on pace/speed and duration
+        let swimKm = 0, bikeKm = 0, runKm = 0;
+        completed.forEach(w => {
+            const dur = (w.actualDuration || w.duration);
+            if (w.sport === "swim") swimKm += (dur / 60) * 1.5; // ~1.5 km/hr for beginner
+            else if (w.sport === "bike") bikeKm += (dur / 60) * 22;  // ~22 km/hr
+            else if (w.sport === "run") runKm += (dur / 60) * 9.5;   // ~9.5 km/hr (~6:20/km)
+        });
+
+        // Average pace/speed by sport
+        const avgPace = {};
+        ["swim", "bike", "run"].forEach(sport => {
+            const sportWorkouts = completed.filter(w => w.sport === sport);
+            if (sportWorkouts.length > 0) {
+                const totalDur = sportWorkouts.reduce((s, w) => s + (w.actualDuration || w.duration), 0);
+                avgPace[sport] = Math.round(totalDur / sportWorkouts.length);
+            }
+        });
+
+        // Weekly plan vs actual
+        const weeklyComparison = [];
+        const weekNumbers = [...new Set(all.map(w => w.weekNumber))].sort((a, b) => a - b);
+        weekNumbers.forEach(wn => {
+            const weekWorkouts = all.filter(w => w.weekNumber === wn);
+            const plannedMin = weekWorkouts.reduce((s, w) => s + w.duration, 0);
+            const actualMin = weekWorkouts.reduce((s, w) => {
+                if (w.status === "completed" || w.status === "modified") return s + (w.actualDuration || w.duration);
+                return s;
+            }, 0);
+            const completedCount = weekWorkouts.filter(w => w.status === "completed" || w.status === "modified").length;
+            const totalCount = weekWorkouts.filter(w => w.sport !== "rest" && w.sport !== "race").length;
+            weeklyComparison.push({
+                week: wn,
+                phase: weekWorkouts[0]?.phase || "",
+                plannedMin, actualMin,
+                completedCount, totalCount,
+                compliance: totalCount > 0 ? Math.round(completedCount / totalCount * 100) : 0,
+            });
+        });
+
+        return {
+            totalWorkouts: completed.length,
+            totalPlanned: all.length,
+            totalHours: Math.round(totalMinutes / 60 * 10) / 10,
+            totalMinutes,
+            completedCount: completed.length,
+            skippedCount: skipped.length,
+            plannedCount: planned.length,
+            modifiedCount: completed.filter(w => w.status === "modified").length,
+            swimKm: Math.round(swimKm * 10) / 10,
+            bikeKm: Math.round(bikeKm * 10) / 10,
+            runKm: Math.round(runKm * 10) / 10,
+            avgPace,
+            weeklyComparison,
+            completionPct: past.length > 0 ? Math.round(completed.length / past.length * 100) : 0,
+        };
     }
 
     // ── Helpers ──────────────────────────────────────────────────
@@ -962,27 +949,14 @@ const TrainingData = (() => {
 
     // ── Public API ───────────────────────────────────────────────
     return {
-        ATHLETE,
-        HR_ZONES,
-        RACE_NAME,
-        RACE_DATE,
-        PLAN_START,
-        SPORT_COLORS,
-        SPORT_ICONS,
-        INTENSITY_COLORS,
-        PHASES,
-        WORKOUT_LIBRARY,
-        generatePlan,
-        addSampleCompletionData,
-        calculateMetrics,
-        calculateWeeklyVolume,
-        calculateCompliance,
-        getHRZone,
-        formatDate,
-        daysToRace,
-        getCurrentPhase,
-        getCurrentWeek,
-        getWorkoutsForDate,
+        ATHLETE, HR_ZONES, RACE_NAME, RACE_DATE, PLAN_START, RACE_DISTANCES,
+        SPORT_COLORS, SPORT_ICONS, INTENSITY_COLORS,
+        PHASES, WORKOUT_LIBRARY, NUTRITION,
+        generatePlan, addSampleCompletionData,
+        calculateMetrics, calculateWeeklyVolume, calculateCompliance,
+        calculateDashboardStats,
+        getHRZone, formatDate, daysToRace,
+        getCurrentPhase, getCurrentWeek, getWorkoutsForDate,
     };
 
 })();
